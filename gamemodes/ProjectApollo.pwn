@@ -7,7 +7,6 @@ Script started: 05.11.2017
 Modes:
 0 = Lobby
 1 = Deathmatch
-2 = Test
 
 LEGEND:
    [ ] = Open
