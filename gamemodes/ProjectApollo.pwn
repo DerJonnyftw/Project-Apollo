@@ -14,7 +14,7 @@ LEGEND:
    [F] = Fixed
    [X] = Done
 
-ToDo List:
+ToDo List: https://trello.com/b/8E3in4l9/project-apollo
 [T] [-] MySQL System
 [T] [-] Register / Login System
 
