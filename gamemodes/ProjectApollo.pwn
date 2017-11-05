@@ -11,7 +11,7 @@ Modes:
 LEGEND:
    [ ] = Open
    [T] = Progress
-   [F] = Fixxed
+   [F] = Fixed
    [X] = Done
 
 ToDo List:
