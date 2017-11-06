@@ -655,7 +655,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				else if(pInfo[playerid][pAdmin] > 1)
 				{
 					format(string, sizeof(string), "[SYSTEM] You have successfully logged in as %s (Adminlevel: %s | %i)", pInfo[playerid][pName], GetPlayerAdminName(playerid), pInfo[playerid][pAdmin]);
-					SendClientMessage(playerid, COLOR_RED, string);
+					SendClientMessage(playerid, COLOR_GREEN, string);
 				}				
 				SpawnPlayer(playerid);
 			}
