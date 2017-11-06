@@ -258,7 +258,13 @@ public OnVehicleDeath(vehicleid, killerid)
 
 public OnPlayerText(playerid, text[])
 {
-	return 1;
+	new string[250];
+	if(mode[playerid] == 0)//Lobby
+	{
+		format(string, sizeof(string), "[%s] %s [%i]: {FFFFFF}%s", GetPlayerModeName(playerid), pInfo[playerid][pName], playerid, text);
+		SendModeMessage(0, GetPlayerColor(playerid), string);
+	}	
+	return 0;
 }
 
 public OnPlayerCommandText(playerid, cmdtext[])
@@ -464,8 +470,28 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 /*************************
 *        FUNCTIONS
 *************************/
+GetPlayerModeName(playerid)
+{
+	new modename[12];
+	switch(mode[playerid])
+	{
+		case 0: modename = "Lobby";
+		case 1: modename = "DM";
+	}
+	return modename;
+}
 
-
+SendModeMessage(modeID, color, const message[])
+{
+	for(new i = 0; i < MAX_PLAYERS; i++)
+	{
+		if(IsPlayerConnected(i) && mode[i] == modeID)
+		{
+			SendClientMessage(i, color, message);
+		}
+	}
+	return 1;
+}
 /*************************
 *        CALLBACKS
 *************************/
