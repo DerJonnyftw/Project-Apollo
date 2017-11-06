@@ -105,7 +105,7 @@ TODO LIST: https://trello.com/b/8E3in4l9/project-apollo
 enum
 {
 	DIALOG_REGISTER,
-	DIALOG_LOGIN,
+	DIALOG_LOGIN
 };
 
 /*************************
