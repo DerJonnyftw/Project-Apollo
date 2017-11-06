@@ -267,6 +267,9 @@ MySQL Connections
 		return 1;
 	}
     print("[MySQL] Successfully connected. Continuing..");
+	/*:::::::::::::::::::::::::: Clan Connection ::::::::::::::::::::::::::*/
+	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Clandata");
+	mysql_pquery(Database, DB_Query, "LoadClan", "");	    
 	//mysql_tquery(Database, "CREATE TABLE IF NOT EXISTS `Accounts` (`ID` int(11) NOT NULL AUTO_INCREMENT, `Username` varchar(24) NOT NULL, `Password` char(65) NOT NULL, `Salt` char(11) NOT NULL, `Score` mediumint(7), PRIMARY KEY (`ID`), UNIQUE KEY `Username` (`Username`))");
 /*##############################################################################
 
