@@ -43,6 +43,8 @@ TODO LIST: https://trello.com/b/8E3in4l9/project-apollo
 #include <audio>
 #include <serverTD>
 #include <YSF>
+//Gamemodes
+#include "../gamemodes/DMMode.pwn"
 
 
 /************************ 
@@ -854,6 +856,87 @@ UpdateDM()
 		DM_Label = CreateDynamic3DTextLabel(labeltext, COLOR_WHITE, -2654.8694, 1397.3739, 906.4647, 10.0);			
 	}		
 	return 1;
+}
+
+getAlphaRGBA(rgbacolor) return (rgbacolor & 0xFF);
+
+stock torgba(rgbacolor, &r, &g, &b, &a)
+{
+	r = (rgbacolor >>> 24),
+	g = ((rgbacolor >>> 16) & 0xFF),
+	b = ((rgbacolor >>> 8) & 0xFF),
+	a = getAlphaRGBA(rgbacolor);
+}
+
+stock toargb(argbcolor, &a, &r, &g, &b)
+{
+	torgba(argbcolor, a, r, g, b);
+}
+
+stock torgbacolor(r, g, b, a) return ((r << 24) | (g << 16) | (b << 8) | a);
+stock toargbcolor(a, r, g, b) return ((a << 24) | (r << 16) | (g << 8) | b);
+
+stock rgbatoargb(rgbacolor)
+{
+	new r, g, b, a;
+
+	torgba(rgbacolor, r, g, b, a);
+
+	return toargbcolor(a, r, g, b);
+}
+
+stock argbtorgba(argbcolor)
+{
+	new a, r, g, b;
+
+	torgba(argbcolor, a, r, g, b);
+
+	return torgbacolor(r, g, b, a);
+}
+
+stock RGBAToHex(r, g, b, a) //By Betamaster
+{
+	return (r<<24 | g<<16 | b<<8 | a);
+}
+
+stock static ConvertStringToHex(string[],size = sizeof(string))
+{
+	new stringR[10];
+
+	strmid(stringR, string, 7, strlen(string));
+
+	strdel(string, 7, strlen(string));
+	strdel(string, 0, 1);
+
+	strins(string, "0x", 0, size);
+	strins(string, stringR, 2, size);
+
+	new i, cur = 1, res = 0;
+
+	for (i = strlen(string); i > 0; i--) {
+    	if (string[i-1] < 58) res = res + cur * (string[i-1] - 48); else res = res + cur * (string[i-1] - 65 + 10);
+	 	cur = cur * 16;
+	}
+ 	return res;
+}
+
+stock RGBAToARGB( rgba )
+    return rgba >>> 8 | rgba << 24;
+
+stock get_rgba(color, &r, &g, &b, &a) {
+	r = (color & 0xFF000000) >>> 24;
+	g = (color & 0x00FF0000) >>> 16;
+	b = (color & 0x0000FF00) >>> 8;
+	a = (color & 0x000000FF);
+}
+
+stock make_color(r, g, b, a) {
+	new color = 0;
+	color |= (r & 0xFF) << 24;
+	color |= (g & 0xFF) << 16;
+	color |= (b & 0xFF) << 8;
+	color |= (a & 0xFF);
+	return color;
 }
 /*************************
 *        CALLBACKS
