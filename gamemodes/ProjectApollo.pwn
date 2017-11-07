@@ -39,7 +39,7 @@ TODO LIST: https://trello.com/b/8E3in4l9/project-apollo
 #include <foreach>
 #include <Desk>
 #include <crashdetect>
-//#include <mapload>
+#include <mapload>
 #include <audio>
 #include <serverTD>
 #include <YSF>
@@ -119,6 +119,8 @@ TODO LIST: https://trello.com/b/8E3in4l9/project-apollo
 #define COLOR_TEAM1 0x0073FFFF
 #define COLOR_TEAM2 0xFF352BFF
 #define COLOR_LIMEGREEN2 0x94D317FF
+#define COLOR_SAMP1 0x99CCCCFF
+#define COLOR_SAMP2 0xB9C9BFFF
 
 /*************** 
      Dialogs 
@@ -140,6 +142,9 @@ enum PlayerInfo
 	pPass[64+1],
 	pSaltedPass[11],
 	pPassFails,
+	pAlive,
+	VehID,
+	SpectateID,	
 
 	pScore,
 	pMoney,
@@ -183,9 +188,18 @@ new mode[MAX_PLAYERS];
 new togmode[2] = 0;
 new labeltext[600];
 new blockpm[MAX_PLAYERS];
+new ProgressBar_timer;
+new bool:toptime_show[MAX_PLAYERS] = false;
+new showtoptime[MAX_PLAYERS];
 
 /* =====> [ Race DM ] <===== */
+new DMAlive;
 new Text3D:DM_Label;
+new nextmapDM[364];
+new nextmapDM2[364];
+new roundtime_minutes,
+	roundtime_seconds,
+	roundtime_millseconds;
 
 /* =====> [ PlayerColor ] <===== */
 new PlayerColors[200] =
@@ -232,6 +246,9 @@ forward Unmute();
 forward LoadClan();
 forward SaveClan(id);
 forward CreateClan(id);
+forward Progress();
+forward RoundTime();
+forward StartRaceDM();
 
 /*************************
 *         NATIVES
@@ -299,7 +316,12 @@ TextDraws
 	CreateServerLoadingLabel();
 	CreateServerTopTimeLabel();
 	CreateServerClanWarLabel();
-	CreateServerDeathListLabel();	
+	CreateServerDeathListLabel();
+
+	/*:::::::::::::::::::::::::: Server Timers ::::::::::::::::::::::::::*/
+	SetTimer("Unmute", 1000 * 60, true);
+	SetTimer("RoundTime", 1000, true);
+
 	/*:::::::::::::::::::::::::: Server Function ::::::::::::::::::::::::::*/
 	EnableStuntBonusForAll(0);
 	DisableInteriorEnterExits();
@@ -400,6 +422,56 @@ public OnPlayerSpawn(playerid)
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
+	if(playerid == INVALID_PLAYER_ID) return 1;
+	if(killerid == INVALID_PLAYER_ID) return 1;
+
+	new string[364];
+	if(mode[playerid] == 1)
+	{
+		pInfo[playerid][pAlive] = 0;
+		if(CountModePlayer(1) == 1 && mode[playerid] == 1)
+		{
+			format(string, sizeof(string), "INFO: You cannot earn money/score when you are playing by yourself!");
+			SendClientMessage(playerid, COLOR_RED, string);
+			LoadNewMap(1);
+			return true;
+		}
+		//Give's the player the Money for his Round
+		pInfo[playerid][pMoney] +=100 / DMAlive;
+		SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+		//Give's the player the Score for his Round
+		//pInfo[playerid][pDMScore] += 60 / DMAlive;
+		//SetPlayerScore(playerid, pInfo[playerid][pDMScore]);
+
+		DMAlive --;
+
+		format(string, sizeof(string), "%i", DMAlive);
+		TextDrawSetString(Alive_TD[3], string);
+		if(CountAlivePlayer(1) > 0)
+		{
+			format(string, sizeof(string), "INFO: {FFFFFF}With your left/right mouse button, you can change the Spectated player!");
+			SendClientMessage(playerid, COLOR_INFO, string);
+			for(new i = 0; i < MAX_PLAYERS; i++)
+			{
+				if(!IsPlayerConnected(i) || mode[i] != 1 || pInfo[i][pAlive] != 1) continue;
+				StopSpectate(playerid);
+				StartSpectate(playerid, i);
+			}
+		}
+		else if(CountAlivePlayer(1) == 0)
+		{
+			for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawHideForPlayer(playerid, TopTime_TD[t]);
+			//pInfo[playerid][pDMWins]++;
+			LoadNewMap(1);
+			for (new i = 0; i < MAX_PLAYERS; i++)
+			{
+				if (!IsPlayerConnected(i) || mode[i] != 1 || GetPlayerState(i) != PLAYER_STATE_SPECTATING) continue;
+				StopSpectate(i);
+			}
+		}
+
+	}	
 	return 1;
 }
 
@@ -410,6 +482,53 @@ public OnVehicleSpawn(vehicleid)
 
 public OnVehicleDeath(vehicleid, killerid)
 {
+	new string[364];
+	if(mode[killerid] == 1)
+	{
+		pInfo[killerid][pAlive] = 0;
+		if(CountModePlayer(1) == 1 && mode[killerid] == 1)
+		{
+			format(string, sizeof(string), "INFO: You cannot earn money/score when you are playing by yourself!");
+			SendClientMessage(killerid, COLOR_RED, string);
+			LoadNewMap(1);
+			return true;
+		}
+		//Give's the player the Money for his Round
+		pInfo[killerid][pMoney] +=100 / DMAlive;
+		SetPlayerMoney(killerid, pInfo[killerid][pMoney]);
+
+		//Give's the player the Score for his Round
+		//pInfo[killerid][pDMScore] += 60 / DMAlive;
+		//SetPlayerScore(killerid, pInfo[killerid][pDMScore]);
+
+		DMAlive --;
+		format(string, sizeof(string), "%i", DMAlive);
+		TextDrawSetString(Alive_TD[3], string);
+
+		if(CountAlivePlayer(1) > 0)
+		{
+			format(string, sizeof(string), "INFO: {FFFFFF}With your left/right mouse button, you can change the Spectated player!");
+			SendClientMessage(killerid, COLOR_INFO, string);
+			for(new i = 0; i < MAX_PLAYERS; i++)
+			{
+				if(!IsPlayerConnected(i) || mode[i] != 1 || pInfo[i][pAlive] != 1) continue;
+				StopSpectate(killerid);
+				StartSpectate(killerid, i);
+			}
+		}
+		else if(CountAlivePlayer(1) == 0)
+		{
+			for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawHideForPlayer(killerid, TopTime_TD[t]);
+			toptime_show[killerid] = false;
+			//pInfo[killerid][pDMWins]++;
+			LoadNewMap(1);
+			for(new i = 0; i < MAX_PLAYERS; i++)
+			{
+				if(!IsPlayerConnected(i) || mode[i] != 1 || GetPlayerState(i) != PLAYER_STATE_SPECTATING) continue;
+				StopSpectate(i);
+			}
+		}
+	}	
 	return 1;
 }
 
@@ -448,6 +567,58 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
+	if(oldstate == PLAYER_STATE_DRIVER && newstate == PLAYER_STATE_ONFOOT)
+	{
+		new string[364];
+		if(mode[playerid] == 1 && pInfo[playerid][pAlive] == 1)
+		{
+			pInfo[playerid][pAlive] = 0;
+			if(CountModePlayer(1) == 1 && mode[playerid] == 1)
+			{
+				format(string, sizeof(string), "INFO: You cannot earn money/score when you are playing by yourself!");
+				SendClientMessage(playerid, COLOR_RED, string);
+				LoadNewMap(1);
+				return true;
+			}
+			//Give's the player the Money for his Round
+			pInfo[playerid][pMoney] +=100 / DMAlive;
+			SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+			//Give's the player the Score for his Round
+			//pInfo[playerid][pScore] += 60 / DMAlive;
+			//SetPlayerScore(playerid, pInfo[playerid][pScore]);
+
+			DMAlive --;
+
+			for(new i = 0; i < MAX_PLAYERS; i++)
+			{
+				if (!IsPlayerConnected(i) || mode[i] != 1) continue;
+				format(string, sizeof(string), "%i", DMAlive);
+				TextDrawSetString(Alive_TD[3], string);
+			}
+			if(CountAlivePlayer(1) > 0)
+			{
+				format(string, sizeof(string), "INFO: {FFFFFF}With your left/right mouse button, you can change the Spectated player!");
+				SendClientMessage(playerid, COLOR_INFO, string);
+				for(new i = 0; i < MAX_PLAYERS; i++)
+				{
+					if(!IsPlayerConnected(i) || mode[i] != 1 || pInfo[i][pAlive] != 1) continue;
+					StopSpectate(playerid);
+					StartSpectate(playerid, i);
+				}
+			}
+			else if(CountAlivePlayer(1) == 0)
+			{
+				for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawHideForPlayer(playerid, TopTime_TD[t]);
+				LoadNewMap(1);
+				for(new i = 0; i < MAX_PLAYERS; i++)
+				{
+					if (!IsPlayerConnected(i) || mode[i] != 1 || GetPlayerState(i) != PLAYER_STATE_SPECTATING) continue;
+					StopSpectate(i);
+				}
+			}
+		}
+	}	
 	return 1;
 }
 
@@ -561,9 +732,9 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				SetPVarInt(playerid, "mode", 1);
 				SetPlayerInterior(playerid, 0);
 				//SetPlayerScore(playerid, pInfo[playerid][pDMScore]);
-				format(string, sizeof(string), "[JOIN] {%06x}%s {A1DB71}has joined the Gamemode - Race DM!", GetPlayerColor(playerid) >>> 8, pInfo[playerid][pName]);
- 				SendModeMessage(1, COLOR_SERVER, string);						
- 				//LoadNewMap(1);
+				format(string, sizeof(string), "[JOIN] {%06x}%s {FFFFFF}has joined the Gamemode - Race DM!", GetPlayerColor(playerid) >>> 8, pInfo[playerid][pName]);
+ 				SendModeMessage(1, COLOR_SAMP2, string);						
+ 				LoadNewMap(1);
  				UpdateDM();		
 			}	
 			else if(CountModePlayer(1) > 0)
@@ -572,16 +743,97 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				SetPVarInt(playerid, "mode", 1);
 				SetPlayerInterior(playerid, 0);
 				//SetPlayerScore(playerid, pInfo[playerid][pDMScore]);
-				format(string, sizeof(string), "[JOIN] {%06x}%s {A1DB71}has joined the Gamemode - Race DM!", GetPlayerColor(playerid) >>> 8, pInfo[playerid][pName]);
- 				SendModeMessage(1, COLOR_SERVER, string);				
+				format(string, sizeof(string), "[JOIN] {%06x}%s {FFFFFF}has joined the Gamemode - Race DM!", GetPlayerColor(playerid) >>> 8, pInfo[playerid][pName]);
+ 				SendModeMessage(1, COLOR_SAMP2, string);				
 				for (new i = 0; i < MAX_PLAYERS; i++)
 				{
-					//if(!IsPlayerConnected(i) || mode[i] != 1 || pInfo[i][pAlive] != 1) continue;
-					//StopSpectate(playerid);
-					//StartSpectate(playerid, i);
+					if(!IsPlayerConnected(i) || mode[i] != 1 || pInfo[i][pAlive] != 1) continue;
+					StopSpectate(playerid);
+					StartSpectate(playerid, i);
 				}						
 				UpdateDM();
 			}			
+		}
+	}
+	if(newkeys == KEY_SECONDARY_ATTACK)
+	{
+		if(mode[playerid] == 1 && pInfo[playerid][pAlive] == 1 && IsPlayerInAnyVehicle(playerid))
+		{
+			pInfo[playerid][pAlive] = 0;
+			if(CountModePlayer(1) == 1 && mode[playerid] == 1)
+			{
+				format(string, sizeof(string), "INFO: You cannot earn money/score when you are playing by yourself!");
+				SendClientMessage(playerid, COLOR_RED, string);
+				LoadNewMap(1);
+				return true;
+			}
+			//Give's the player the Money for his Round
+			pInfo[playerid][pMoney] +=100 / DMAlive;
+			SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+			//Give's the player the Score for his Round
+			pInfo[playerid][pScore] += 60 / DMAlive;
+			SetPlayerScore(playerid, pInfo[playerid][pScore]);
+
+			DMAlive --;
+
+			format(string, sizeof(string), "%i", DMAlive);
+			TextDrawSetString(Alive_TD[3], string);
+			if(CountAlivePlayer(1) > 0)
+			{
+				format(string, sizeof(string), "INFO: {FFFFFF}With your left/right mouse button, you can change the Spectated player!");
+				SendClientMessage(playerid, COLOR_INFO, string);
+				for(new i = 0; i < MAX_PLAYERS; i++)
+				{
+					if(!IsPlayerConnected(i) || mode[i] != 1 || pInfo[i][pAlive] != 1) continue;
+					StopSpectate(playerid);
+					StartSpectate(playerid, i);
+				}
+			}
+			else if(CountAlivePlayer(1) == 0)
+			{
+				for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawHideForPlayer(playerid, TopTime_TD[t]);
+				toptime_show[playerid] = false;
+				LoadNewMap(1);
+				for(new i = 0; i < MAX_PLAYERS; i++)
+				{
+					if(!IsPlayerConnected(i) || mode[i] != 1 || GetPlayerState(i) != PLAYER_STATE_SPECTATING) continue;
+					StopSpectate(i);
+				}
+			}
+		}
+
+	}
+	else if(newkeys == KEY_FIRE && pInfo[playerid][pAlive] == 0 && GetPlayerState(playerid) == PLAYER_STATE_SPECTATING)
+	{
+		if(mode[playerid] == 1) 
+		{
+			//Left mouse button
+			PrevSpectate(playerid);
+		}
+	}
+	else if(newkeys == KEY_HANDBRAKE && pInfo[playerid][pAlive] == 0 && GetPlayerState(playerid) == PLAYER_STATE_SPECTATING)
+	{
+		if(mode[playerid] == 1) 
+		{
+			//Right mouse button
+			NextSpectate(playerid);
+		}
+	}
+	if(newkeys == KEY_LOOK_BEHIND)
+	{
+		if(mode[playerid] == 1)
+		{
+			if(showtoptime[playerid] == 0)
+			{
+				showtoptime[playerid] = 1;
+				for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawHideForPlayer(playerid, TopTime_TD[t]);
+			}
+			else if(showtoptime[playerid] == 1)
+			{
+				showtoptime[playerid] = 0;
+				for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawShowForPlayer(playerid, TopTime_TD[t]);
+			}
 		}
 	}	
 	return 1;
@@ -716,6 +968,301 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 /*************************
 *        FUNCTIONS
 *************************/
+public OnPlayerFinishRace(playerid)
+{
+	if (GetPlayerState(playerid) == PLAYER_STATE_SPECTATING) return 1;
+
+	//new bool:found = false;
+	new string[264];
+
+	roundtime_millseconds = (GetTickCount() - roundtime_millseconds);
+	format(string, sizeof(string), "{%06x}%s {FFFFFF}has finished the {A1DB71}MAP {FFFFFF}(%02d:%02d:%i) (+{33AA33}${FFFFFF}100)",
+	GetPlayerColor(playerid) >>> 8, pInfo[playerid][pName], roundtime_minutes, roundtime_seconds, (roundtime_millseconds%1000));
+	SendModeMessage(1, COLOR_ORANGE, string);
+	//pInfo[playerid][pHunters]++;
+	pInfo[playerid][pMoney] += 100;
+	SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
+	/*
+	pInfo[playerid][pDMScore] += 15;
+	SetPlayerScore(playerid, pInfo[playerid][pDMScore]);	
+	*/
+	SetPlayerVirtualWorld(playerid, 0);
+
+	for(new t = 0; t < sizeof(TopTime_TD); t++) TextDrawShowForPlayer(playerid, TopTime_TD[t]);
+	toptime_show[playerid] = true;
+	return 1;
+}
+
+public Progress()
+{
+	new string[128], percent_int;
+	KillTimer(ProgressBar_timer);
+	static Float: Progress_bar;
+	if (Progress_bar < 100.0) 
+	{
+		new int = 1 + random(20);
+		if (Progress_bar + float(int) > 100.0) 
+		{
+			Progress_bar = 100.0;
+			TextDrawTextSize(DMLoad_TD[7], (133.5 + ((419 * Progress_bar) / 100)), 0.0);
+			for (new i = 0; i < MAX_PLAYERS; i++) 
+			{
+				if (!IsPlayerConnected(i) || mode[i] != 1) continue;
+				TextDrawShowForPlayer(i, DMLoad_TD[7]);
+				for (new t = 0; t < 4; t++) PlayerTextDrawHide(i, SPECTATOR_PTD[i][t]);
+				PlayerTextDrawSetString(i, SPECTATOR_PTD[i][2], "");
+			}
+			percent_int = floatround(Progress_bar, floatround_round);
+			format(string, sizeof(string), "_______________________________%i%", percent_int);
+			TextDrawSetString(DMLoad_TD[7], string);
+			ProgressBar_timer = SetTimer("Progress", 2000, false);
+			return true;
+		}
+		Progress_bar += float(int);
+		TextDrawTextSize(DMLoad_TD[7], (133.5 + ((419 * Progress_bar) / 100)), 0.0);
+		for(new i = 0; i < MAX_PLAYERS; i++) 
+		{
+			if (!IsPlayerConnected(i) || mode[i] != 1) continue;
+			TextDrawShowForPlayer(i, DMLoad_TD[7]);
+			for (new t = 0; t < 4; t++) PlayerTextDrawHide(i, SPECTATOR_PTD[i][t]);
+			PlayerTextDrawSetString(i, SPECTATOR_PTD[i][2], "");
+		}
+		percent_int = floatround(Progress_bar, floatround_round);
+		format(string, sizeof(string), "_______________________________%i%", percent_int);
+		TextDrawSetString(DMLoad_TD[7], string);
+
+		ProgressBar_timer = SetTimer("Progress", 2000, false);
+	}
+	else if (Progress_bar >= 100.0)
+	{
+		Progress_bar = 0.0;
+		TextDrawTextSize(DMLoad_TD[7], (133.5 + ((419 * Progress_bar) / 100)), 0.0);
+		for (new i = 0; i < MAX_PLAYERS; i++)
+		{
+			if (!IsPlayerConnected(i) || mode[i] != 1) continue;
+			for (new t = 0; t < sizeof (DMLoad_TD); t++) TextDrawHideForPlayer(i, DMLoad_TD[t]);
+			for (new t = 0; t < sizeof(FOOTER_TD); t++) TextDrawShowForPlayer(i, FOOTER_TD[t]);
+			/*
+			if(pInfo[i][pSiren] == 1) 
+			{
+				DestroyObject(vsiren[i]);
+  				vsiren[i] = SetPlayerAttachedObject(i, 0, 18646,2,0.08,0.00,0.00,0.0,82.0,99.0,1.33,1.57,1.80);
+  			}
+  			*/	
+		}
+		format(string, sizeof(string), "_______________________________0%");
+		TextDrawSetString(DMLoad_TD[7], string);
+		mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM toptimes WHERE Mapname = '%s' ORDER BY Pos ASC LIMIT 0,10", GetMapName());
+		mysql_pquery(Database, DB_Query, "LoadTopData", "");
+		StartRace(3000);
+		SetTimer("StartRaceDM", 3000, false);
+	}
+	return true;
+}
+
+public StartRaceDM()
+{
+	new string[128];
+	roundtime_seconds = 0;
+	roundtime_minutes = 0;
+	roundtime_millseconds = GetTickCount();
+	format(string, sizeof(string), "%i", DMAlive);
+	TextDrawSetString(Alive_TD[3], string);
+	for (new i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (!IsPlayerConnected(i) || mode[i] != 1) continue;
+		pInfo[i][VehID] = GetPVarInt(i, "VehID");
+		pInfo[i][pAlive] = 1;
+	}
+	DMAlive = CountAlivePlayer(1);
+	return true;
+}
+
+public RoundTime()
+{
+	new string[128];
+	roundtime_seconds++;
+	if(roundtime_seconds == 60) 
+	{
+ 		roundtime_minutes++;
+ 		roundtime_seconds = 0;
+		format(string, sizeof(string), "Time: %02d:%02d", roundtime_minutes, roundtime_seconds);
+		TextDrawSetString(FOOTER_TD[5], string);
+	}
+	else 
+	{
+		format(string, sizeof(string), "Time: %02d:%02d", roundtime_minutes, roundtime_seconds);
+		TextDrawSetString(FOOTER_TD[5], string);
+	}
+	return 1;
+}
+
+LoadNewMap(modeID)
+{
+	new string[364];
+	switch(modeID)
+	{
+		case 1:
+		{
+			// Deathmatch Racing
+			if(strlen(nextmapDM) > 0)
+			{
+				LoadMap(nextmapDM);
+				strmid(nextmapDM, "", 0, strlen(nextmapDM), strlen(nextmapDM));
+				if(strlen(nextmapDM2) > 0) 
+				{
+					new tmp_name[168];
+					strmid(tmp_name, nextmapDM2, strfind(nextmapDM2, "racemaps/")+9, strfind(nextmapDM2, ".ini"));
+					TextDrawSetString(FOOTER_TD[6], tmp_name);
+				}
+				else if(strlen(nextmapDM2) == 0)
+				{
+					TextDrawSetString(FOOTER_TD[6], "random");
+				}
+			}
+			else if(strlen(nextmapDM2) > 0)
+			{
+				LoadMap(nextmapDM2);
+				strmid(nextmapDM2, "", 0, strlen(nextmapDM2), strlen(nextmapDM2));
+				TextDrawSetString(FOOTER_TD[6], "random");
+			}
+			else if(strlen(nextmapDM2) == 0)
+			{
+				LoadRandomMap();
+				format(string, sizeof(string), "random");
+				TextDrawSetString(FOOTER_TD[6], string);
+			}
+
+			// Author
+			RemoveSpecialCharacter(GetAuthorName());
+			format(string, sizeof(string), "%s", GetAuthorName());
+			TextDrawSetString(DMLoad_TD[4], string);
+
+			// Mapname
+			RemoveSpecialCharacter(GetMapName());
+			format(string, sizeof(string), "%s", GetMapName());
+			TextDrawSetString(DMLoad_TD[6], string);
+
+			// Overlay
+			RemoveSpecialCharacter(GetAuthorName());
+			format(string, sizeof(string), "%s", GetMapName());
+			TextDrawSetString(FOOTER_TD[7], string);
+
+			for(new i = 0; i < MAX_PLAYERS; i++)
+			{
+				if (!IsPlayerConnected(i) || mode[i] != modeID) continue;
+				for (new t = 0; t < sizeof(DMLoad_TD); t++) TextDrawShowForPlayer(i, DMLoad_TD[t]);
+				for (new t = 0; t < sizeof(TopTime_TD); t++) TextDrawHideForPlayer(i, TopTime_TD[t]);
+				for (new t = 0; t < sizeof(FOOTER_TD); t++) TextDrawHideForPlayer(i, FOOTER_TD[t]);
+				toptime_show[i] = false;
+			}
+			ProgressBar_timer = SetTimer("Progress", 2000, false);
+		}
+	}
+	return true;
+}
+
+RemoveSpecialCharacter(text[])
+{
+	for (new i = 0; i < strlen(text); i++)
+	{
+		switch (text[i])
+		{
+			case '/', '?', '>', '\\', '<', '*', '|', ':', '#', '\"':
+			{
+				strdel(text, i, i+1);
+				i--;
+			}
+		}
+	}
+	return strlen(text);
+}
+
+StartSpectate(playerid, specid)
+{
+	new string[364], Float:Health;
+	new vID = GetPlayerVehicleID(specid);	
+	GetVehicleHealth(vID, Health);
+	SetPlayerPos(playerid, 0.0, 0.0, -10.0);
+	format(string, sizeof(string), "Name: ~y~%s", pInfo[specid][pName]);
+	PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][2], string);
+	format(string, sizeof(string), "Vehicle Health: ~r~%.1f", Health);
+	PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][3], string);	
+	for (new t = 0; t < 4; t++) PlayerTextDrawShow(playerid, SPECTATOR_PTD[playerid][t]);
+	SetPlayerInterior(playerid, GetPlayerInterior(specid));
+	SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(specid));
+	pInfo[playerid][SpectateID] = specid;
+	pInfo[playerid][VehID] = GetPlayerVehicleID(specid);
+	SetPVarInt(playerid, "spectateID", specid);
+	TogglePlayerSpectating(playerid, true);
+	if (IsPlayerInAnyVehicle(specid)) 
+	{
+		PlayerSpectateVehicle(playerid, GetPlayerVehicleID(specid), SPECTATE_MODE_NORMAL);
+	} 
+	else 
+	{
+		PlayerSpectatePlayer(playerid, specid, SPECTATE_MODE_NORMAL);
+	}
+	return 1;
+}
+
+StopSpectate(playerid)
+{
+	printf("StopSpectate(%i)", playerid);
+	for (new t = 0; t < 4; t++) PlayerTextDrawHide(playerid, SPECTATOR_PTD[playerid][t]);
+	PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][2], "");
+	PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][3], "");		
+	pInfo[playerid][SpectateID] = -1;
+	SetPVarInt(playerid, "spectateID", -1);
+	TogglePlayerSpectating(playerid, false);
+	return 1;
+}
+
+NextSpectate(playerid)
+{
+	new Float:Health;
+	new vID = GetPlayerVehicleID(playerid);	
+	GetVehicleHealth(vID, Health);	
+	new id = pInfo[playerid][SpectateID], string[128];
+	while(id < MAX_PLAYERS)
+	{
+	    id++;
+	    if(IsPlayerConnected(id) && mode[id] == mode[playerid] && pInfo[id][pAlive] == 1)
+	    {
+	        pInfo[playerid][SpectateID] = id;
+	        SetPVarInt(playerid, "spectateID", id);
+			format(string, sizeof(string), "Name: ~y~", pInfo[id][pName]);
+			PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][2], string);
+			format(string, sizeof(string), "Vehicle Health: ~r~%.1f", Health);
+			PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][3], string);			
+			for (new t = 0; t < 3; t++) PlayerTextDrawShow(playerid, SPECTATOR_PTD[playerid][t]);
+	    }
+	}
+	return true;
+}
+
+PrevSpectate(playerid)
+{
+	new Float:Health;
+	new vID = GetPlayerVehicleID(playerid);	
+	GetVehicleHealth(vID, Health);		
+	new id = pInfo[playerid][SpectateID], string[128];
+	while(id > 0)
+	{
+	    id--;
+	    if(IsPlayerConnected(id) && mode[id] == mode[playerid] && pInfo[id][pAlive] == 1)
+	    {
+	        pInfo[playerid][SpectateID] = id;
+	        SetPVarInt(playerid, "spectateID", id);
+			format(string, sizeof(string), "Name: ~y~",pInfo[id][pName]);
+			PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][2], string);
+			format(string, sizeof(string), "Vehicle Health: ~r~%.1f", Health);
+			PlayerTextDrawSetString(playerid, SPECTATOR_PTD[playerid][3], string);			
+	    }
+	}
+	return true;
+}
+
 GetPlayerModeName(playerid)
 {
 	new modename[12];
@@ -818,6 +1365,18 @@ CountModePlayer(modeID)
 		count ++;
 	}
 	return count;
+}
+
+CountAlivePlayer(modeID)
+{
+	new count = 0;
+	for (new i = 0; i < MAX_PLAYERS; i++) 
+	{
+		if(!IsPlayerConnected(i) || mode[i] != modeID) continue;
+		if(mode[i] == modeID && pInfo[i][pAlive] == 1) count++;
+	}
+	return count;
+
 }
 
 GetPlayerAdminName(playerid)
@@ -1249,7 +1808,6 @@ ocmd:setadmin(playerid, params[])
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(pInfo[pID][pAdmin] == adminLevel)return SendClientMessage(playerid, COLOR_RED,"[ERROR] The player already has this Adminlevel!");
 	if(adminLevel < 0 || adminLevel > 6)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Invalid level! (0 - 6)!");
-	if(pInfo[pID][pAdmin] >= pInfo[pID][pAdmin])return SendClientMessage(playerid, COLOR_RED, "[ERROR] You cannot perform this command on a higher or equal leveled admin!");
 	currentLevel = pInfo[pID][pAdmin];
 	pInfo[pID][pAdmin] = adminLevel;
 	if(currentLevel == 0)
