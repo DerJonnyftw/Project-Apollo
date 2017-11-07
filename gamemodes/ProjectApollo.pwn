@@ -1536,6 +1536,7 @@ ocmd:setmoney(playerid, params[])
 
 ocmd:createclan(playerid, params[])
 {
+	if(pInfo[playerid][pAdmin] < 4) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new year, month, day, hour, minute, second;
 	getdate(year, month, day);
 	gettime(hour, minute, second);
@@ -1562,6 +1563,56 @@ ocmd:createclan(playerid, params[])
 	SendAdminMessage(COLOR_RED, string);
 	SavePlayerStats(pID);	    
 	return 1;
+}
+
+ocmd:delclan(playerid, params[])
+{
+	if(pInfo[playerid][pAdmin] < 4) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
+	new clanID, string[128];
+	if(sscanf(params, "i", clanID))return SendClientMessage(playerid, COLOR_RED, "[Command] /delclan [ClanID]");
+	for(new i = 0; i < sizeof(cInfo); i ++)
+	{
+		if(!cInfo[i][c_ID] || clanID != cInfo[i][c_ID]) continue;
+		format(string, sizeof(string), "[AdmCmd] %s has deleted the following clan (Clan name: %s)", pInfo[playerid][pName], cInfo[i][cName]);
+		SendAdminMessage(COLOR_RED, string);
+		mysql_format(Database, DB_Query, sizeof(DB_Query), "DELETE FROM Clandata WHERE ID = '%d'", cInfo[i][c_ID]);
+		mysql_pquery(Database, DB_Query);
+
+		for(new p = 0; p < MAX_PLAYERS; p ++)
+		{
+			if(!IsPlayerConnected(p)) continue;
+			if(!strlen(pInfo[i][pClan])) continue;
+			if(!strcmp(cInfo[i][cName], pInfo[i][pClan], true))
+			{
+				SendClientMessage(playerid, COLOR_RED, "Your clan has been deleted!");
+				strmid(pInfo[i][pClan], "", 0, 64, 64);
+				pInfo[i][pClanRank] = 0;
+				pInfo[i][pClanRights] = 0;
+				return 1;
+			}
+		}
+	}
+	return 1;
+}
+
+ocmd:setclanscore(playerid, params[])
+{
+	if(pInfo[playerid][pAdmin] < 4) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
+	new clanID, clanScore, string[128];
+	if(sscanf(params, "ii", clanID, clanScore))return SendClientMessage(playerid, COLOR_RED, "[Command] /setclanscore [ClanID] [ClanScore]");
+    for(new i = 0; i < sizeof(cInfo); i ++)
+    {
+        if(!cInfo[i][c_ID] || clanID != cInfo[i][c_ID]) continue;
+		format(string, sizeof(string), "[AdmCmd] %s has added %i score to (Clan name: %s)", pInfo[playerid][pName], clanScore, cInfo[i][cName]);
+		SendAdminMessage(COLOR_RED, string);
+		
+		cInfo[i][cScore] = clanScore;
+
+		mysql_format(Database, DB_Query, sizeof(DB_Query), "UPDATE Clandata SET Clanscore = '%i' WHERE ID = '%d'", clanScore, cInfo[i][c_ID]);
+		mysql_pquery(Database, DB_Query);
+		return 1;
+    }
+	return SendClientMessage(playerid, COLOR_RED, "[ERROR] Clan was not Found!");
 }
 
 ocmd:setclanleader(playerid, params[])
@@ -1699,6 +1750,38 @@ ocmd@2:g,global(playerid, params[])
 	format(string, sizeof(string), "{%06x}[G] %s [%i]: {FFFFFF}%s",
 	GetPlayerColor(playerid) >>> 8, pInfo[playerid][pName], playerid, text);
 	SendClientMessageToAll(GetPlayerColor(playerid), string);
+	return 1;
+}
+
+ocmd:invite(playerid, params[])
+{
+	if(!strlen(pInfo[playerid][pClan]) || pInfo[playerid][pClanRights] != 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not the Leader!");
+	new pID, string[128];
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /invite [Playername/ID]");
+	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
+	if(strlen(pInfo[pID][pClan]) > 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is already in a Clan!");
+	strmid(pInfo[pID][pClan], pInfo[playerid][pClan], 0, strlen(pInfo[playerid][pClan]), strlen(pInfo[playerid][pClan]));
+	pInfo[pID][pClanRank] = 1;
+	format(string, sizeof(string), "%s has invited you to %s. Type /caccept to join the Clan!", pInfo[playerid][pName], pInfo[playerid][pClan]);
+	SendClientMessage(pID, COLOR_ORANGE, string);
+	format(string, sizeof(string), "You've invited %s to your Clan!", pInfo[pID][pName]);
+	SendClientMessage(playerid, COLOR_ORANGE, string);		
+	return 1;
+}
+
+ocmd:ckick(playerid, params[])
+{
+	if(!strlen(pInfo[playerid][pClan]) || pInfo[playerid][pClanRights] != 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not the Leader!");
+	new pID, string[128];
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /ckick [Playername/ID]");
+	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
+	if(strlen(pInfo[pID][pClan]) != pInfo[playerid][pClan])return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is not in your Clan!");
+	strmid(pInfo[pID][pClan], "", 0, 64, 64);
+	pInfo[pID][pClanRank] = 0;
+	format(string, sizeof(string), "%s has kicked you from the Clan!", pInfo[playerid][pName]);
+	SendClientMessage(pID, COLOR_RED, string);
+	format(string, sizeof(string), "%s has been successfully kicked from the Clan!", pInfo[pID][pName]);
+	SendClientMessage(playerid, COLOR_ORANGE, string);
 	return 1;
 }
 
