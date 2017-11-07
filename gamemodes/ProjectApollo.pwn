@@ -1815,3 +1815,33 @@ ocmd:report(playerid, params[])
 	SendClientMessage(playerid, COLOR_ORANGE, "[REPORT] Thank you for your report! An admin will take care of it shortly!");
 	return 1;
 }
+
+ocmd:admins(playerid, params[])
+{
+    new string[128];
+    SendClientMessage(playerid, COLOR_RED, "|____________________[ Admins Online ]____________________|");
+	for (new i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (!IsPlayerConnected(i) || pInfo[i][pAdmin] < 1) continue;
+		format(string, sizeof(string), "> {A1DB71}Name: {FFFFFF}%s [%i] | {A1DB71}Level: {FFFFFF}%s (%i) | {A1DB71}Mode: {FFFFFF}%s <",
+		pInfo[i][pName], i, GetPlayerAdminName(i), pInfo[i][pAdmin], GetPlayerModeName(i));
+		SendClientMessage(playerid, COLOR_WHITE, string);
+	}
+	SendClientMessage(playerid, COLOR_RED, "|________________________________________________________|");
+	return 1;
+}
+
+ocmd:topclans(playerid, params[])
+{
+	new string[128];
+	SendClientMessage(playerid, COLOR_RED, "|____________________[ Top Clans ]____________________|");
+	for(new i = 0; i < sizeof(cInfo); i++)
+	{
+	    if(!cInfo[i][c_ID]) continue;
+		format(string, sizeof(string), "> {FF9900}%i. Clan: {FFFFFF}%s | {FF9900}Points: {FFFFFF}%i <",
+		i+1, cInfo[i][cName], cInfo[i][cScore]);
+		SendClientMessage(playerid, COLOR_WHITE, string);
+	}
+	SendClientMessage(playerid, COLOR_RED, "|____________________________________________________|");	
+	return 1;
+}
