@@ -10,7 +10,7 @@ new Text:MoneyLabel_TD[3];
 
 new PlayerText:SPECTATOR_PTD[MAX_PLAYERS][4];
 new PlayerText:MoneyLabel_PTD[MAX_PLAYERS][1];
-//new PlayerText:RegLog_PTD[MAX_PLAYERS][41];
+new PlayerText:RegLog_PTD[MAX_PLAYERS][41];
 
 stock CreateServerMoneyLabel()
 {

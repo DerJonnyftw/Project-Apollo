@@ -263,7 +263,7 @@ main()
 
 public OnGameModeInit()
 {
-	SetGameModeText("Apollo 0.0.1");
+	SetGameModeText("Apollo 0.0.2");
 	UsePlayerPedAnims();
 	EnableStuntBonusForAll(0);
 	DisableInteriorEnterExits();
@@ -771,6 +771,7 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
 								//:::::::::::::::::::::::::: Spawn + Mode ::::::::::::::::::::::::::
 								TogglePlayerSpectating(playerid, false);
 								pInfo[playerid][LoggedIn] = true;
+								SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
 								mode[playerid] = 0;
 								SetPVarInt(playerid, "mode", 0);
 								if(pInfo[playerid][pAdmin] == 0)
@@ -1124,6 +1125,7 @@ public OnPlayerDataCheck(playerid, corrupt_check)
         cache_get_value_int(0, "ID", pInfo[playerid][p_ID]);
         cache_get_value_int(0, "Score", pInfo[playerid][pScore]);
 		cache_get_value_int(0, "Money", pInfo[playerid][pMoney]);
+		SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
 		cache_get_value_int(0, "Skin", pInfo[playerid][pSkin]);
 		cache_get_value_int(0, "Admin", pInfo[playerid][pAdmin]);
 		cache_get_value_int(0, "Warns", pInfo[playerid][pWarns]);
@@ -1145,7 +1147,7 @@ public OnPlayerDataCheck(playerid, corrupt_check)
 		// Achievements here
 	}
 	for(new i=0; i<41; i++) PlayerTextDrawShow(playerid, RegLog_PTD[playerid][i]);
-	SelectTextDraw(playerid, 0x10EBA2FF);
+	SelectTextDraw(playerid, 0xA1DB71FF);
 	return 1;
 }
 
