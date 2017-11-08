@@ -421,6 +421,7 @@ public OnPlayerSpawn(playerid)
 				SetPlayerInterior(playerid, 3);
 				SetPlayerVirtualWorld(playerid, 0);
 				SetPlayerScore(playerid, 1738);
+				SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
 			}	
 		}
 	}
@@ -747,7 +748,9 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
 						case 0: SendClientMessage(playerid, COLOR_RED, "[ERROR] Please input your password!");
 						case 1:
 						{
-							mysql_format(Database, DB_Query, sizeof(DB_Query), "INSERT INTO `Accounts` (`Username`, `Password`, `Salt`, `IP`) VALUES ('%e', '%s', '%e', '%e')", pInfo[playerid][pName], pInfo[playerid][pPass], pInfo[playerid][pSalt], pInfo[playerid][pIP]);
+							new year, month, day;
+							getdate(year, month, day);
+							mysql_format(Database, DB_Query, sizeof(DB_Query), "INSERT INTO `Accounts` (`Username`, `Password`, `Salt`, `IP`, `Joined`) VALUES ('%e', '%s', '%e', '%e', '%02d.%02d.%02d')", pInfo[playerid][pName], pInfo[playerid][pPass], pInfo[playerid][pSalt], pInfo[playerid][pIP], year, month, day);
 		     				mysql_tquery(Database, DB_Query, "OnPlayerRegister", "d", playerid);
 						}
 					}
@@ -1107,7 +1110,7 @@ public Unmute()
 /* =====> [ Saving / Loading of accounts ] <===== */
 public OnPlayerDataCheck(playerid, corrupt_check)
 {
-	new string[25];
+	new string[25], Date[19];
 
 	if (corrupt_check != Corrupt_Check[playerid]) return Kick(playerid);
 	// Player ban status check
@@ -1120,6 +1123,7 @@ public OnPlayerDataCheck(playerid, corrupt_check)
 
 		cache_get_value(0, "Password", pInfo[playerid][pPass], 65);
 		cache_get_value(0, "Salt", pInfo[playerid][pSalt], 11);
+		cache_get_value_name(0, "Joined", Date);
 		pInfo[playerid][Player_Cache] = cache_save();
 		cache_set_active(pInfo[playerid][Player_Cache]);
         cache_get_value_int(0, "ID", pInfo[playerid][p_ID]);
@@ -1137,13 +1141,26 @@ public OnPlayerDataCheck(playerid, corrupt_check)
 
         format(string, sizeof(string), "~g~Registered");
         PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
+
         format(string, sizeof(string), "~g~$%s", NiceMoney(pInfo[playerid][pMoney]));
 		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][19], string);
-		format(string, sizeof(string), "~p~%s", pInfo[playerid][pClan]);
-		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][22], string);
+
+		if(!strlen(pInfo[playerid][pClan]))
+		{
+			format(string, sizeof(string), "~p~None");
+			PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][22], string);			
+		}
+		else if(strlen(pInfo[playerid][pClan]) > 0)
+		{
+			format(string, sizeof(string), "~p~%s", pInfo[playerid][pClan]);
+			PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][22], string);
+		}
+
 		format(string, sizeof(string), "~b~%d", pInfo[playerid][p_ID]);
 		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][25], string);
-		// Join Date here
+
+		format(string, sizeof(string), "%s", Date);
+		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][40], string);
 		// Achievements here
 	}
 	for(new i=0; i<41; i++) PlayerTextDrawShow(playerid, RegLog_PTD[playerid][i]);
