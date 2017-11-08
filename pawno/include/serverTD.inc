@@ -8,9 +8,9 @@ new Text:TopTime_TD[33];
 new Text:DeathList_TD[4];
 new Text:MoneyLabel_TD[3];
 
+new PlayerText:RegLog_PTD[MAX_PLAYERS][41];
 new PlayerText:SPECTATOR_PTD[MAX_PLAYERS][4];
 new PlayerText:MoneyLabel_PTD[MAX_PLAYERS][1];
-new PlayerText:RegLog_PTD[MAX_PLAYERS][41];
 
 stock CreateServerMoneyLabel()
 {
@@ -1086,14 +1086,18 @@ stock CreatePlayerRegLogLabel(playerid)
 
 	RegLog_PTD[playerid][10] = CreatePlayerTextDraw(playerid, 144.766754, 212.345046, "]]]]]");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][10], 0.217666, 0.936294);
+	PlayerTextDrawTextSize(playerid, RegLog_PTD[playerid][10], 291.000000, 10.000000);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][10], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][10], -1);
+	PlayerTextDrawUseBox(playerid, RegLog_PTD[playerid][10], 1);
+	PlayerTextDrawBoxColor(playerid, RegLog_PTD[playerid][10], 0);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][10], 0);
 	PlayerTextDrawSetOutline(playerid, RegLog_PTD[playerid][10], 1);
 	PlayerTextDrawBackgroundColor(playerid, RegLog_PTD[playerid][10], 255);
 	PlayerTextDrawFont(playerid, RegLog_PTD[playerid][10], 2);
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][10], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][10], 0);
+	PlayerTextDrawSetSelectable(playerid, RegLog_PTD[playerid][10], true);
 
 	RegLog_PTD[playerid][11] = CreatePlayerTextDraw(playerid, 245.683151, 50.929866, "Welcome_to");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][11], 0.589999, 3.176517);
@@ -1366,8 +1370,11 @@ stock CreatePlayerRegLogLabel(playerid)
 
 	RegLog_PTD[playerid][33] = CreatePlayerTextDraw(playerid, 153.466705, 345.030975, "Continue");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][33], 0.276333, 1.288889);
+	PlayerTextDrawTextSize(playerid, RegLog_PTD[playerid][33], 195.000000, 10.009998);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][33], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][33], -1);
+	PlayerTextDrawUseBox(playerid, RegLog_PTD[playerid][33], 1);
+	PlayerTextDrawBoxColor(playerid, RegLog_PTD[playerid][33], 0);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][33], 0);
 	PlayerTextDrawSetOutline(playerid, RegLog_PTD[playerid][33], 1);
 	PlayerTextDrawBackgroundColor(playerid, RegLog_PTD[playerid][33], 255);
@@ -1392,8 +1399,11 @@ stock CreatePlayerRegLogLabel(playerid)
 
 	RegLog_PTD[playerid][35] = CreatePlayerTextDraw(playerid, 248.572509, 345.030975, "Cancel");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][35], 0.276333, 1.288889);
+	PlayerTextDrawTextSize(playerid, RegLog_PTD[playerid][35], 277.000000, 10.009998);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][35], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][35], -1);
+	PlayerTextDrawUseBox(playerid, RegLog_PTD[playerid][35], 1);
+	PlayerTextDrawBoxColor(playerid, RegLog_PTD[playerid][35], 0);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][35], 0);
 	PlayerTextDrawSetOutline(playerid, RegLog_PTD[playerid][35], 1);
 	PlayerTextDrawBackgroundColor(playerid, RegLog_PTD[playerid][35], 255);
