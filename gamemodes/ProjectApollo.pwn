@@ -163,7 +163,8 @@ enum PlayerInfo
 
 	Cache:Player_Cache,
 	bool:LoggedIn,
-	bool:Registered
+	bool:Registered,
+	bool:pBanned
 };
 new pInfo[MAX_PLAYERS][PlayerInfo];
 
@@ -382,21 +383,38 @@ public OnPlayerConnect(playerid)
 	return 1;
 }
 
-public OnPlayerDisconnect(playerid, reason)
+public OnPlayerDisconnect(playerid, reason) 
 {
+	// =======> Stats saving <======= //
 	Corrupt_Check[playerid]++;
 	mysql_format(Database, DB_Query, sizeof(DB_Query), "UPDATE Accounts SET Score = '%i', Money = '%i', Skin = '%i', Admin = '%i', Warns = '%i', Mute = '%i', Clan = '%s', ClanRank = '%i', ClanRights = '%i', IRC = '%i' WHERE ID ='%d'",
 	pInfo[playerid][pScore], pInfo[playerid][pMoney], pInfo[playerid][pSkin], pInfo[playerid][pAdmin], pInfo[playerid][pWarns], pInfo[playerid][pMute], pInfo[playerid][pClan], pInfo[playerid][pClanRank], pInfo[playerid][pClanRights], pInfo[playerid][pIRC], pInfo[playerid][p_ID]);
 	printf("query: %s", DB_Query);
 	mysql_pquery(Database, DB_Query);		
 	printf("Done.");
+
+	// =======> Stats and cache reset <======= //
 	if(cache_is_valid(pInfo[playerid][Player_Cache]))
 	{
 		cache_delete(pInfo[playerid][Player_Cache]);
 		pInfo[playerid][Player_Cache] = MYSQL_INVALID_CACHE;
 	}
+	pInfo[playerid][p_ID] = 0;
+	pInfo[playerid][pScore] = 0;
+	pInfo[playerid][pMoney] = 0;
+	pInfo[playerid][pSkin] = 0;
+	pInfo[playerid][pAdmin] = 0;
+	pInfo[playerid][pWarns] = 0; 
+	pInfo[playerid][pMute] = 0;
+	format(pInfo[playerid][pClan], 64, "");
+	pInfo[playerid][pClanRank] = 0;
+	pInfo[playerid][pClanRights] = 0;
+	pInfo[playerid][pIRC] = 0;
+	mode[playerid] = 0;	
+	blockpm[playerid] = 0;
 	pInfo[playerid][LoggedIn] = false;
 	pInfo[playerid][Registered] = false;
+
 	return 1;
 }
 
@@ -674,7 +692,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if(strlen(inputtext) < 5 || strlen(inputtext) > 30)
 			{
 		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
-				ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", string, "Login", "Leave");
+				return ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", string, "Login", "Leave");
 			}
 			SHA256_PassHash(inputtext, pInfo[playerid][pSalt], pInfo[playerid][pSaltedPass], 65);
 			for (new i=0; i<strlen(inputtext); i++)
@@ -685,15 +703,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		}
 		case DIALOG_REGISTER:
 		{
+			new string[254];
 			if(strlen(inputtext) < 5 || strlen(inputtext) > 30)
 			{
-				new String[254];
-		    	format(String, sizeof(String), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
-				ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", String, "Register", "Leave");
+		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
+				return ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", string, "Register", "Leave");
 			}
 			else
 			{
-				new string[31];
 				GetPlayerIp(playerid, pInfo[playerid][pIP], 16);
 				for (new i = 0; i < 10; i++) pInfo[playerid][pSalt][i] = random(79) + 47;		
 	    		pInfo[playerid][pSalt][10] = 0;
@@ -774,6 +791,8 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
 								//:::::::::::::::::::::::::: Spawn + Mode ::::::::::::::::::::::::::
 								TogglePlayerSpectating(playerid, false);
 								pInfo[playerid][LoggedIn] = true;
+								pInfo[playerid][pPasswordInput] = 0;
+								pInfo[playerid][pPassFails] = 0;
 								SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
 								mode[playerid] = 0;
 								SetPVarInt(playerid, "mode", 0);
@@ -993,13 +1012,13 @@ public IsPlayerBanned(playerid)
 	cache_get_row_count(rows);
 	if(rows > 0)
 	{
-		new string2[550], string1[550], mainstring[1000], Reason[60], Admin[MAX_PLAYER_NAME], Date[19], Time[19], IPAdress[16];
+		new string[11], string2[550], string1[550], mainstring[1000], Reason[60], Admin[MAX_PLAYER_NAME], Date[19], Time[19], IPAdress[16];
 		cache_get_value_name(0, "IP", IPAdress);
 		cache_get_value_name(0, "Reason", Reason);
 		cache_get_value_name(0, "Time", Time);
 		cache_get_value_name(0, "Date", Date);
 		cache_get_value_name(0, "Admin", Admin);
-
+		pInfo[playerid][pBanned] = true;
 		format(string1, sizeof(string1),
 		"{FFFFFF}[ {FF3A3A}Ban Information {FFFFFF}]\n{FFFFFF}Account: {FF3A3A}%s\n{FFFFFF}Admin who issued the ban: {FF3A3A}%s\n{FFFFFF}Reason: {FF3A3A}%s\n{FFFFFF}Time and Date: {FF3A3A}%s | %s\n{FFFFFF}IP-Address: {FF3A3A}%s\n{FFFFFF}If you were banned wrongly, please take a Screenshot of this Dialog\nand write an Ban appeal in the Forums!\n\n{FF3A3A}Project Apollo Team!",
 		pInfo[playerid][pName], Admin, Reason, Time, Date, IPAdress);
@@ -1009,6 +1028,8 @@ public IsPlayerBanned(playerid)
 		ShowPlayerDialog(playerid, DIALOG_BAN, DIALOG_STYLE_MSGBOX, string2, mainstring, "Close", "");
 		format(string2, sizeof(string2), "[AdmCmd] %s has been kicked, (Reason: Banned)", pInfo[playerid][pName]);
 		SendAdminMessage(COLOR_RED, string2);
+		format(string, sizeof(string), "~r~Banned");
+        PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
 		Kick(playerid);
 		return 1;
 	}
@@ -1025,7 +1046,8 @@ public CheckPlayerBanIP(playerid)
 	cache_get_row_count(rows);
 	if(rows > 0)
 	{
-		new string2[550], string1[550], mainstring[1000], IPAdress[16];
+		new string[11], string2[550], string1[550], mainstring[1000], IPAdress[16];
+		pInfo[playerid][pBanned] = true;
 		cache_get_value_name(0, "IP", IPAdress);
 		format(string1, sizeof(string1),
 		"{FFFFFF}[ {FF3A3A}Ban Information {FFFFFF}]\n{FFFFFF}Your IP-Address is currently banned\nIP-Address: {FF3A3A}%s\n{FFFFFF}If you were banned wrongly, please take a Screenshot of this Dialog\nand write an Ban appeal in the Forums!\n\n{FF3A3A}Project Apollo Team!",
@@ -1036,6 +1058,8 @@ public CheckPlayerBanIP(playerid)
 		ShowPlayerDialog(playerid, DIALOG_BAN, DIALOG_STYLE_MSGBOX, string2, mainstring, "Close", "");
 		format(string2, sizeof(string2), "[AdmCmd] %s has been kicked, (Reason: IP-Address Banned)", pInfo[playerid][pName]);
 		SendAdminMessage(COLOR_RED, string2);
+		format(string, sizeof(string), "~r~Banned");
+        PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
 		Kick(playerid);
 		return 1;	
 	}
@@ -1052,7 +1076,8 @@ public CheckPlayerBanSerial(playerid)
 	cache_get_row_count(rows);
 	if(rows > 0)
 	{
-		new string2[550], string1[550], mainstring[1000], Serial[200];
+		new string[11], string2[550], string1[550], mainstring[1000], Serial[200];
+		pInfo[playerid][pBanned] = true;
 		cache_get_value_name(0, "Serial", Serial);
 		format(string1, sizeof(string1),
 		"{FFFFFF}[ {FF3A3A}Ban Information {FFFFFF}]\n{FFFFFF}Your Serial is currently banned\nSerial: {FF3A3A}%s\n{FFFFFF}If you were banned wrongly, please take a Screenshot of this Dialog\nand write an Ban appeal in the Forums!\n\n{FF3A3A}Project Apollo Team!",
@@ -1063,9 +1088,12 @@ public CheckPlayerBanSerial(playerid)
 		ShowPlayerDialog(playerid, DIALOG_BAN, DIALOG_STYLE_MSGBOX, string2, mainstring, "Close", "");
 		format(string2, sizeof(string2), "[AdmCmd] %s has been kicked, (Reason: Serial Banned)", pInfo[playerid][pName]);
 		SendAdminMessage(COLOR_RED, string2);
+		format(string, sizeof(string), "~r~Banned");
+        PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
 		Kick(playerid);
 		return 1;	
 	}
+	pInfo[playerid][pBanned] = false;
 	return 1;
 }
 
@@ -1139,8 +1167,11 @@ public OnPlayerDataCheck(playerid, corrupt_check)
 		cache_get_value_int(0, "ClanRights", pInfo[playerid][pClanRights]);
 		cache_get_value_int(0, "IRC", pInfo[playerid][pIRC]);
 
-        format(string, sizeof(string), "~g~Registered");
-        PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
+		if(pInfo[playerid][pBanned] == false)
+		{
+			format(string, sizeof(string), "~g~Registered");
+        	PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
+		}
 
         format(string, sizeof(string), "~g~$%s", NiceMoney(pInfo[playerid][pMoney]));
 		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][19], string);
@@ -1178,6 +1209,8 @@ public OnPlayerRegister(playerid)
 	pInfo[playerid][pSkin] = RandSkin;
 	SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
 	SetPlayerSkin(playerid, RandSkin);
+	pInfo[playerid][pPasswordInput] = 0;
+	pInfo[playerid][pPassFails] = 0;
 	TogglePlayerSpectating(playerid, false);
 	CancelSelectTextDraw(playerid);
 
