@@ -1160,7 +1160,7 @@ stock CreatePlayerRegLogLabel(playerid)
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][15], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][15], 0);
 
-	RegLog_PTD[playerid][16] = CreatePlayerTextDraw(playerid, 144.383743, 260.070678, "~r~unregistered");
+	RegLog_PTD[playerid][16] = CreatePlayerTextDraw(playerid, 144.383743, 260.070678, "~r~Unregistered");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][16], 0.217666, 0.936294);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][16], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][16], -1);
@@ -1196,7 +1196,7 @@ stock CreatePlayerRegLogLabel(playerid)
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][18], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][18], 0);
 
-	RegLog_PTD[playerid][19] = CreatePlayerTextDraw(playerid, 144.383743, 288.813659, "~g~$100.000.000.000");
+	RegLog_PTD[playerid][19] = CreatePlayerTextDraw(playerid, 144.383743, 288.813659, "~g~$0");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][19], 0.217666, 0.936294);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][19], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][19], -1);
@@ -1232,7 +1232,7 @@ stock CreatePlayerRegLogLabel(playerid)
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][21], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][21], 0);
 
-	RegLog_PTD[playerid][22] = CreatePlayerTextDraw(playerid, 144.383743, 316.756835, "~p~ABZDEFGHIJKLMN");
+	RegLog_PTD[playerid][22] = CreatePlayerTextDraw(playerid, 144.383743, 316.756835, "~p~None");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][22], 0.217666, 0.936294);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][22], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][22], -1);
@@ -1268,7 +1268,7 @@ stock CreatePlayerRegLogLabel(playerid)
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][24], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][24], 0);
 
-	RegLog_PTD[playerid][25] = CreatePlayerTextDraw(playerid, 236.050521, 260.377136, "3452");
+	RegLog_PTD[playerid][25] = CreatePlayerTextDraw(playerid, 236.050521, 260.377136, "~r~Not available");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][25], 0.217666, 0.936294);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][25], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][25], -1);
@@ -1465,7 +1465,7 @@ stock CreatePlayerRegLogLabel(playerid)
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][39], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][39], 0);
 
-	RegLog_PTD[playerid][40] = CreatePlayerTextDraw(playerid, 236.050521, 288.878875, "00.00.0000");
+	RegLog_PTD[playerid][40] = CreatePlayerTextDraw(playerid, 236.050521, 288.878875, "~r~Not available");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][40], 0.217666, 0.936294);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][40], 1);
 	PlayerTextDrawColor(playerid, RegLog_PTD[playerid][40], -1);
