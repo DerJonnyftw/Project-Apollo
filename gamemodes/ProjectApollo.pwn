@@ -139,12 +139,12 @@ enum PlayerInfo
 {
 	p_ID,
 	pName[25],
+	pIP[16],
 	pPass[64+1],
-	pSaltedPass[11],
+	pSaltedPass[64+1],
+	pSalt[11],
 	pPassFails,
-	pAlive,
-	VehID,
-	SpectateID,	
+	pPasswordInput,
 
 	pScore,
 	pMoney,
@@ -156,9 +156,14 @@ enum PlayerInfo
 	pClanRank,
 	pClanRights,	
 	pIRC,
+	
+	pAlive,
+	VehID,
+	SpectateID,	
 
 	Cache:Player_Cache,
-	bool:LoggedIn
+	bool:LoggedIn,
+	bool:Registered
 };
 new pInfo[MAX_PLAYERS][PlayerInfo];
 
@@ -227,8 +232,6 @@ new PlayerColors[200] =
 *************************/
 forward OnPlayerDataCheck(playerid, corrupt_check);
 forward OnPlayerRegister(playerid);
-forward SavePlayerStats(playerid);
-forward ResetPlayerStats(playerid);
 forward BanPlayerFromServer(playerid, pID, const reason[], ipadress[]);
 forward IsPlayerBanned(playerid);
 forward CheckPlayerBanIP(playerid);
@@ -261,12 +264,15 @@ main()
 public OnGameModeInit()
 {
 	SetGameModeText("Apollo 0.0.1");
+	UsePlayerPedAnims();
+	EnableStuntBonusForAll(0);
+	DisableInteriorEnterExits();
 /*##############################################################################
 
 MySQL Connections
 
 ##############################################################################*/	
-	/*:::::::::::::::::::::::::: Account Connection ::::::::::::::::::::::::::*/
+	/*:::::::::::::::::::::::::: MySQL Connection ::::::::::::::::::::::::::*/
 	new MySQLOpt: option_id = mysql_init_options();
 	mysql_set_option(option_id, AUTO_RECONNECT, true);
 	mysql_log(ALL);
@@ -278,7 +284,7 @@ MySQL Connections
 		return 1;
 	}
     print("[MySQL] Successfully connected. Continuing..");
-	/*:::::::::::::::::::::::::: Clan Connection ::::::::::::::::::::::::::*/
+	/*:::::::::::::::::::::::::: Database handling ::::::::::::::::::::::::::*/
 	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Clandata");
 	mysql_pquery(Database, DB_Query, "LoadClan", "");	    
 	//mysql_tquery(Database, "CREATE TABLE IF NOT EXISTS `Accounts` (`ID` int(11) NOT NULL AUTO_INCREMENT, `Username` varchar(24) NOT NULL, `Password` char(65) NOT NULL, `Salt` char(11) NOT NULL, `Score` mediumint(7), PRIMARY KEY (`ID`), UNIQUE KEY `Username` (`Username`))");
@@ -303,7 +309,6 @@ TextDraws
 ##############################################################################*/
 	CreateServerMoneyLabel();
 	CreateServerAliveLabel();
-	CreateServerMoneyLabel();
 	CreateServerFooterLabel();
 	CreateServerLoadingLabel();
 	CreateServerTopTimeLabel();
@@ -327,8 +332,6 @@ public OnGameModeExit()
 	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if(pInfo[i][LoggedIn] == false) continue;
-		SavePlayerStats(i);
-		ResetPlayerStats(i);
 	}
 	for(new i = 0; i < sizeof(cInfo); i++)
 	{
@@ -357,57 +360,70 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerConnect(playerid)
 {
+	new NameString[25];
    	//If player is NPC
 	if(IsPlayerNPC(playerid)) return 1;
-	/*:::::::::::::::::::::::::: CheckData ::::::::::::::::::::::::::*/
+	/*:::::::::::::::::::::::::: Data reset ::::::::::::::::::::::::::*/
 	pInfo[playerid][pPassFails] = 0;
 	GetPlayerName(playerid, pInfo[playerid][pName], MAX_PLAYER_NAME);
 	Corrupt_Check[playerid]++;
-	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM `Accounts` WHERE `Username` = '%e' LIMIT 1", pInfo[playerid][pName]);
-	mysql_tquery(Database, DB_Query, "OnPlayerDataCheck", "ii", playerid, Corrupt_Check[playerid]);
-	/*:::::::::::::::::::::::::: SetMode + Color ::::::::::::::::::::::::::*/
+	/*:::::::::::::::::::::::::: SetMode + Color::::::::::::::::::::::::::*/
 	mode[playerid] = 0;
 	SetPVarInt(playerid, "mode", 0);
 	SetPlayerColor(playerid, PlayerColors[playerid]);
 	/*:::::::::::::::::::::::::: TextDraws ::::::::::::::::::::::::::*/
 	CreatePlayerMoneyLabel(playerid);
 	CreatePlayerSpectatorLabel(playerid);
+	CreatePlayerRegLogLabel(playerid);
+
+	format(NameString, sizeof(NameString), "%s", pInfo[playerid][pName]);
+	PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][7], NameString);
+	SendClientMessage(playerid, COLOR_SERVER, "[SYSTEM] Click spawn to continue!");
 	return 1;
 }
 
 public OnPlayerDisconnect(playerid, reason)
 {
 	Corrupt_Check[playerid]++;
-	mysql_format(Database, DB_Query, sizeof(DB_Query), "UPDATE `Accounts` SET `Score` = %d WHERE `ID` = %d LIMIT 1", pInfo[playerid][pScore], pInfo[playerid][p_ID]);
-	mysql_tquery(Database, DB_Query);
+	mysql_format(Database, DB_Query, sizeof(DB_Query), "UPDATE Accounts SET Score = '%i', Money = '%i', Skin = '%i', Admin = '%i', Warns = '%i', Mute = '%i', Clan = '%s', ClanRank = '%i', ClanRights = '%i', IRC = '%i' WHERE ID ='%d'",
+	pInfo[playerid][pScore], pInfo[playerid][pMoney], pInfo[playerid][pSkin], pInfo[playerid][pAdmin], pInfo[playerid][pWarns], pInfo[playerid][pMute], pInfo[playerid][pClan], pInfo[playerid][pClanRank], pInfo[playerid][pClanRights], pInfo[playerid][pIRC], pInfo[playerid][p_ID]);
+	printf("query: %s", DB_Query);
+	mysql_pquery(Database, DB_Query);		
+	printf("Done.");
 	if(cache_is_valid(pInfo[playerid][Player_Cache]))
 	{
 		cache_delete(pInfo[playerid][Player_Cache]);
 		pInfo[playerid][Player_Cache] = MYSQL_INVALID_CACHE;
 	}
 	pInfo[playerid][LoggedIn] = false;
-	SavePlayerStats(playerid);
-	ResetPlayerStats(playerid);
+	pInfo[playerid][Registered] = false;
 	return 1;
 }
 
 public OnPlayerSpawn(playerid)
 {
-	/*:::::::::::::::::::::::::: Banned ::::::::::::::::::::::::::*/
-	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Bandata WHERE Name = '%s'", pInfo[playerid][pName]);
-	mysql_pquery(Database, DB_Query, "IsPlayerBanned", "i", playerid);	
-	//SetSkin
-	SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
-	//Lobby Spawn
-	if(mode[playerid] == 0)
+	switch(pInfo[playerid][LoggedIn])
 	{
-		SetPlayerPos(playerid, -2639.0715, 1406.4830, 906.4609);
-		SetPlayerFacingAngle(playerid, 89.6960);
-		SetCameraBehindPlayer(playerid);
-		SetPlayerInterior(playerid, 3);
-		SetPlayerVirtualWorld(playerid, 0);
-		SetPlayerScore(playerid, 1738);
-	}	
+		case false:
+		{
+			for (new i=0; i < 20; i++) SendClientMessage(playerid, COLOR_LIGHTBLUE, "");
+			TogglePlayerSpectating(playerid, true);
+			mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM `Accounts` WHERE `Username` = '%e' LIMIT 1", pInfo[playerid][pName]);
+			mysql_tquery(Database, DB_Query, "OnPlayerDataCheck", "ii", playerid, Corrupt_Check[playerid]);
+		}
+		case true:
+		{
+			if(mode[playerid] == 0)
+			{
+				SetPlayerPos(playerid, -2639.0715, 1406.4830, 906.4609);
+				SetPlayerFacingAngle(playerid, 89.6960);
+				SetCameraBehindPlayer(playerid);
+				SetPlayerInterior(playerid, 3);
+				SetPlayerVirtualWorld(playerid, 0);
+				SetPlayerScore(playerid, 1738);
+			}	
+		}
+	}
 	return 1;
 }
 
@@ -493,7 +509,6 @@ public OnRconCommand(cmd[])
 
 public OnPlayerRequestSpawn(playerid)
 {
-	if(pInfo[playerid][LoggedIn] == false) return 0;
 	return 1;
 }
 
@@ -654,87 +669,40 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	{
 		case DIALOG_LOGIN:
 		{
-			if(!response) return Kick(playerid);
-			new SaltedPass[65];
-			new string[128];
-			SHA256_PassHash(inputtext, pInfo[playerid][pSaltedPass], SaltedPass, 65);
-			if(strcmp(SaltedPass, pInfo[playerid][pPass]) == 0)
+			new string[264];
+			if(strlen(inputtext) < 5 || strlen(inputtext) > 30)
 			{
-				/*:::::::::::::::::::::::::: Login Sccessful ::::::::::::::::::::::::::*/
-				cache_set_active(pInfo[playerid][Player_Cache]);
-            	cache_get_value_int(0, "ID", pInfo[playerid][p_ID]);
-            	cache_get_value_int(0, "Score", pInfo[playerid][pScore]);
-        		SetPlayerScore(playerid, pInfo[playerid][pScore]);
-		 		cache_get_value_int(0, "Money", pInfo[playerid][pMoney]);
-		 		SetPlayerMoney(playerid, pInfo[playerid][pMoney]); 
-		 		cache_get_value_int(0, "Skin", pInfo[playerid][pSkin]);
-		 		cache_get_value_int(0, "Admin", pInfo[playerid][pAdmin]);
-		 		cache_get_value_int(0, "Warns", pInfo[playerid][pWarns]);
-		 		cache_get_value_int(0, "Mute", pInfo[playerid][pMute]);
-		 		cache_get_value(0, "Clan", pInfo[playerid][pClan], 64);
-		 		cache_get_value_int(0, "ClanRank", pInfo[playerid][pClanRank]);
-		 		cache_get_value_int(0, "ClanRights", pInfo[playerid][pClanRights]);		 		
-		 		cache_get_value_int(0, "IRC", pInfo[playerid][pIRC]);       		
-        		cache_delete(pInfo[playerid][Player_Cache]);
-				pInfo[playerid][Player_Cache] = MYSQL_INVALID_CACHE;
-				pInfo[playerid][LoggedIn] = true;
-				/*:::::::::::::::::::::::::: TextDraws ::::::::::::::::::::::::::*/
-				for (new i = 0; i < sizeof (MoneyLabel_TD); i++) TextDrawShowForPlayer(playerid, MoneyLabel_TD[i]);
-				for (new i = 0; i < 1; i++) PlayerTextDrawShow(playerid, MoneyLabel_PTD[playerid][i]);					
-				/*:::::::::::::::::::::::::: Spawn + Mode ::::::::::::::::::::::::::*/
-				mode[playerid] = 0;
-				SetPVarInt(playerid, "mode", 0);
-				if(pInfo[playerid][pAdmin] == 0)
-				{
-					SendClientMessage(playerid, COLOR_GREEN, "[SYSTEM] You have successfully logged into your account!");
-				}
-				else if(pInfo[playerid][pAdmin] > 1)
-				{
-					format(string, sizeof(string), "[SYSTEM] You have successfully logged in as %s (Adminlevel: %s | %i)", pInfo[playerid][pName], GetPlayerAdminName(playerid), pInfo[playerid][pAdmin]);
-					SendClientMessage(playerid, COLOR_GREEN, string);
-				}				
-				SpawnPlayer(playerid);
+		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
+				ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", string, "Login", "Leave");
 			}
-			else
+			SHA256_PassHash(inputtext, pInfo[playerid][pSalt], pInfo[playerid][pSaltedPass], 65);
+			for (new i=0; i<strlen(inputtext); i++)
 			{
-			    new String[247];
-				pInfo[playerid][pPassFails]++;
-				// Add a message to admins here, later.
-				if (pInfo[playerid][pPassFails] == 5)
-				{
-					format(String, sizeof(String), "[AdmCmd] %s has been kicked by Apollo Crews(ID: -1). (Reason: Failed to login.)", pInfo[playerid][pName]);
-					SendClientMessageToAll(COLOR_RED, String);
-					Kick(playerid);
-				}
-				else
-				{
-					format(String, sizeof(String), "{FF3A3A}Wrong password, try again. (%d/5)\n\n{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {A1DB71}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pPassFails], pInfo[playerid][pName]);
-					ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", String, "Login", "Leave");
-				}
+				format(string, sizeof(string), "%s]", string);
+				PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][10], string);
 			}
 		}
 		case DIALOG_REGISTER:
 		{
-			if(!response) return Kick(playerid);
 			if(strlen(inputtext) < 5 || strlen(inputtext) > 30)
 			{
-			    new String[254];
-		    	format(String, sizeof(String), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {A1DB71}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
+				new String[254];
+		    	format(String, sizeof(String), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
 				ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", String, "Register", "Leave");
 			}
 			else
 			{
-				new ipadress[16];
-				GetPlayerIp(playerid, ipadress, sizeof(ipadress));
-				for (new i = 0; i < 10; i++)
-                {
-                    pInfo[playerid][pSaltedPass][i] = random(79) + 47;
-	    		}
-	    		pInfo[playerid][pSaltedPass][10] = 0;
-		    	SHA256_PassHash(inputtext, pInfo[playerid][pSaltedPass], pInfo[playerid][pPass], 65);
-				mysql_format(Database, DB_Query, sizeof(DB_Query), "INSERT INTO `Accounts` (`Username`, `Password`, `Salt`, `IP`) VALUES ('%e', '%s', '%e', '%e')", pInfo[playerid][pName], pInfo[playerid][pPass], pInfo[playerid][pSaltedPass], ipadress);
-		     	mysql_tquery(Database, DB_Query, "OnPlayerRegister", "d", playerid);
-		     }
+				new string[31];
+				GetPlayerIp(playerid, pInfo[playerid][pIP], 16);
+				for (new i = 0; i < 10; i++) pInfo[playerid][pSalt][i] = random(79) + 47;		
+	    		pInfo[playerid][pSalt][10] = 0;
+		    	SHA256_PassHash(inputtext, pInfo[playerid][pSalt], pInfo[playerid][pPass], 65);
+				for (new i=0; i<strlen(inputtext); i++)
+				{
+					format(string, sizeof(string), "%s]", string);
+					PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][10], string);
+				}
+		    }
 		}
 	}
 	return 1;
@@ -743,6 +711,103 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 {
 	return 1;
+}
+
+public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
+{
+	if (_:playertextid != INVALID_TEXT_DRAW)
+	{
+	    if(playertextid == RegLog_PTD[playerid][10]) // Password
+	    {
+	    	new string[202];
+	    	switch(pInfo[playerid][Registered]) // Checks if the player is registered or not, shows different dialogs.
+	    	{
+	    		case false:
+	    		{
+	    			format(string, sizeof(string), "{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
+					ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", string, "Continue", "");
+	    		}
+	    		case true:
+	    		{
+	    			format(string, sizeof(string), "{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
+					ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", string, "Continue", "");
+	    		}
+	    	}
+	        pInfo[playerid][pPasswordInput] = 1;
+	        return 1;
+	    }
+	    if(playertextid == RegLog_PTD[playerid][33]) // Continue
+	    {
+	    	switch(pInfo[playerid][Registered])
+	    	{
+	    		case false:
+	    		{
+	    			switch(pInfo[playerid][pPasswordInput])
+					{
+						case 0: SendClientMessage(playerid, COLOR_RED, "[ERROR] Please input your password!");
+						case 1:
+						{
+							mysql_format(Database, DB_Query, sizeof(DB_Query), "INSERT INTO `Accounts` (`Username`, `Password`, `Salt`, `IP`) VALUES ('%e', '%s', '%e', '%e')", pInfo[playerid][pName], pInfo[playerid][pPass], pInfo[playerid][pSalt], pInfo[playerid][pIP]);
+		     				mysql_tquery(Database, DB_Query, "OnPlayerRegister", "d", playerid);
+						}
+					}
+	    		}
+	    		case true:
+	    		{
+					switch(pInfo[playerid][pPasswordInput])
+					{
+						case 0: SendClientMessage(playerid, COLOR_RED, "[ERROR] Please input your password!");
+						case 1:
+						{
+							new string[120];
+							if(strcmp(pInfo[playerid][pSaltedPass], pInfo[playerid][pPass]) == 0) // Login successfull
+							{
+								
+								//:::::::::::::::::::::::::: TextDraws ::::::::::::::::::::::::::
+								for (new i = 0; i < sizeof (MoneyLabel_TD); i++) TextDrawShowForPlayer(playerid, MoneyLabel_TD[i]);
+								for (new i = 0; i < 1; i++) PlayerTextDrawShow(playerid, MoneyLabel_PTD[playerid][i]);
+								for(new i=0; i<41; i++) PlayerTextDrawDestroy(playerid, RegLog_PTD[playerid][i]);
+								CancelSelectTextDraw(playerid);		
+								//:::::::::::::::::::::::::: Spawn + Mode ::::::::::::::::::::::::::
+								TogglePlayerSpectating(playerid, false);
+								pInfo[playerid][LoggedIn] = true;
+								mode[playerid] = 0;
+								SetPVarInt(playerid, "mode", 0);
+								if(pInfo[playerid][pAdmin] == 0)
+								{
+									SendClientMessage(playerid, COLOR_GREEN, "[SYSTEM] You have successfully logged into your account!");
+								}
+								else if(pInfo[playerid][pAdmin] > 1)
+								{
+									format(string, sizeof(string), "[SYSTEM] You have successfully logged in as %s (Adminlevel: %s | %i)", pInfo[playerid][pName], GetPlayerAdminName(playerid), pInfo[playerid][pAdmin]);
+									SendClientMessage(playerid, COLOR_GREEN, string);
+								}				
+								SpawnPlayer(playerid);
+							}
+							else
+							{
+								pInfo[playerid][pPassFails]++;
+								// Add a message to admins here, later.
+								if (pInfo[playerid][pPassFails] == 5)
+								{
+									format(string, sizeof(string), "[ADMIN] %s has been kicked by Apollo Crews(ID: -1). (Reason: Failed to login.)", pInfo[playerid][pName]);
+									SendClientMessageToAll(COLOR_RED, string);
+									Kick(playerid);
+								}
+								else
+								{
+									format(string, sizeof(string), "Wrong password, try again.{FF3A3A} (%d/5)", pInfo[playerid][pPassFails]);
+									SendClientMessage(playerid, COLOR_WHITE, string);
+								}
+							}
+						}
+					}
+	    		}
+	    	}
+	    }
+	    if (playertextid == RegLog_PTD[playerid][35]) return Kick(playerid); // Cancel
+	}
+    return 0;
 }
 /*************************
 *        FUNCTIONS
@@ -914,7 +979,6 @@ public BanPlayerFromServer(playerid, pID, const reason[], ipadress[])
 	strdel(string1, 0, sizeof(string1));
 	format(string2, sizeof(string2), "{FF3A3A}You've been banned from this Server!");
 	ShowPlayerDialog(playerid, DIALOG_BAN, DIALOG_STYLE_MSGBOX, string2, mainstring, "Close", "");
-	ResetPlayerStats(playerid);
 	Kick(playerid);	
 	return 1;
 }
@@ -1028,7 +1092,6 @@ public Unmute()
 	{
 		if(!IsPlayerConnected(i) || pInfo[i][pMute] == 0)continue;
 		pInfo[i][pMute] --;
-		SavePlayerStats(i);
 		if(pInfo[i][pMute] == 0)
 		{
 			format(string, sizeof(string), "[AdmCmd] %s has been unmuted by the System!", pInfo[i][pName]);
@@ -1040,82 +1103,79 @@ public Unmute()
 	return 1;
 }
 
-/* =====> [ Saves / Loades Accounts ] <===== */
+/* =====> [ Saving / Loading of accounts ] <===== */
 public OnPlayerDataCheck(playerid, corrupt_check)
 {
+	new string[25];
+
 	if (corrupt_check != Corrupt_Check[playerid]) return Kick(playerid);
-	new String[202];
+	// Player ban status check
+	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Bandata WHERE Name = '%s'", pInfo[playerid][pName]);
+	mysql_pquery(Database, DB_Query, "IsPlayerBanned", "i", playerid);
+
 	if(cache_num_rows() > 0)
 	{
+		pInfo[playerid][Registered] = true;
+
 		cache_get_value(0, "Password", pInfo[playerid][pPass], 65);
-		cache_get_value(0, "Salt", pInfo[playerid][pSaltedPass], 11);
-		pInfo[playerid][Player_Cache] = cache_save();		
-		format(String, sizeof(String), "{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {A1DB71}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
-		ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", String, "Login", "Leave");
+		cache_get_value(0, "Salt", pInfo[playerid][pSalt], 11);
+		pInfo[playerid][Player_Cache] = cache_save();
+		cache_set_active(pInfo[playerid][Player_Cache]);
+        cache_get_value_int(0, "ID", pInfo[playerid][p_ID]);
+        cache_get_value_int(0, "Score", pInfo[playerid][pScore]);
+		cache_get_value_int(0, "Money", pInfo[playerid][pMoney]);
+		cache_get_value_int(0, "Skin", pInfo[playerid][pSkin]);
+		cache_get_value_int(0, "Admin", pInfo[playerid][pAdmin]);
+		cache_get_value_int(0, "Warns", pInfo[playerid][pWarns]);
+		cache_get_value_int(0, "Mute", pInfo[playerid][pMute]);
+		cache_get_value(0, "Clan", pInfo[playerid][pClan], 64);
+		cache_get_value_int(0, "ClanRank", pInfo[playerid][pClanRank]);
+		cache_get_value_int(0, "ClanRights", pInfo[playerid][pClanRights]);
+		cache_get_value_int(0, "IRC", pInfo[playerid][pIRC]);
+
+        format(string, sizeof(string), "~g~Registered");
+        PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][16], string);
+        format(string, sizeof(string), "~g~$%s", NiceMoney(pInfo[playerid][pMoney]));
+		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][19], string);
+		format(string, sizeof(string), "~p~%s", pInfo[playerid][pClan]);
+		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][22], string);
+		format(string, sizeof(string), "~b~%d", pInfo[playerid][p_ID]);
+		PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][25], string);
+		// Join Date here
+		// Achievements here
 	}
-	else
-	{
-		format(String, sizeof(String), "{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {A1DB71}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
-		ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", String, "Register", "Leave");
-	}
+	for(new i=0; i<41; i++) PlayerTextDrawShow(playerid, RegLog_PTD[playerid][i]);
+	SelectTextDraw(playerid, 0x10EBA2FF);
 	return 1;
 }
 
 public OnPlayerRegister(playerid)
 {
-	new string[86];
+	new string[86], RandSkin = random(311);
 	mode[playerid] = 0;
 	SetPVarInt(playerid, "mode", 0);
 	pInfo[playerid][p_ID] = cache_insert_id();
+	if (RandSkin == 0 || RandSkin == 74) return RandSkin ++;
+	pInfo[playerid][pSkin] = RandSkin;
+	SetPlayerMoney(playerid, pInfo[playerid][pMoney]);
+	SetPlayerSkin(playerid, RandSkin);
+	TogglePlayerSpectating(playerid, false);
+	CancelSelectTextDraw(playerid);
+
 	/*:::::::::::::::::::::::::: TextDraws ::::::::::::::::::::::::::*/
 	for (new i = 0; i < sizeof (MoneyLabel_TD); i++) TextDrawShowForPlayer(playerid, MoneyLabel_TD[i]);
 	for (new i = 0; i < 1; i++) PlayerTextDrawShow(playerid, MoneyLabel_PTD[playerid][i]);		
+	for(new i=0; i < 41; i++) PlayerTextDrawDestroy(playerid, RegLog_PTD[playerid][i]);
+
 	SendClientMessage(playerid, COLOR_GREEN, "[SYSTEM] You have successfully registered, welcome aboard!"); // Change to a tutorial in the future
 	format(string, sizeof(string), "[SYSTEM] %s has just registered. Total accounts registered: %d.", pInfo[playerid][pName], pInfo[playerid][p_ID]); // Make the total accounts search better in the future.
 	SendClientMessageToAll(COLOR_GREEN, string);
-    SetSpawnInfo(playerid, 0, 0, -2639.0715, 1406.4830, 906.4609, 89.6960, 0, 0, 0, 0, 0, 0);
-    SetPlayerInterior(playerid, 3);
 	SpawnPlayer(playerid);
     pInfo[playerid][LoggedIn] = true;
     return 1;
 }
 
-public SavePlayerStats(playerid)
-{
-	printf("SavePlayer for %d.", playerid);
-	printf("Loggedin: %d", pInfo[playerid][LoggedIn]);
-	pInfo[playerid][LoggedIn]++;
-	if(!pInfo[playerid][LoggedIn]) return 1;
-	printf("Saving...");
-	mysql_format(Database, DB_Query, sizeof(DB_Query), "UPDATE Accounts SET Score = '%i', Money = '%i', Skin = '%i', Admin = '%i', Warns = '%i', Mute = '%i', Clan = '%s', ClanRank = '%i', ClanRights = '%i', IRC = '%i' WHERE ID ='%d'",
-	pInfo[playerid][pScore], pInfo[playerid][pMoney], pInfo[playerid][pSkin], pInfo[playerid][pAdmin], pInfo[playerid][pWarns], pInfo[playerid][pMute], pInfo[playerid][pClan], pInfo[playerid][pClanRank], pInfo[playerid][pClanRights], pInfo[playerid][pIRC], pInfo[playerid][p_ID]);
-	printf("query: %s", DB_Query);
-	mysql_pquery(Database, DB_Query);		
-	printf("Done.");	
-	return 1;
-}
 
-public ResetPlayerStats(playerid)
-{
-	if(!IsPlayerNPC(playerid))
-	{
-	    /*:::::::::::::::::::::::::: Player Initialized ::::::::::::::::::::::::::*/
-		pInfo[playerid][p_ID] = 0;
-		pInfo[playerid][LoggedIn] = false;
-		pInfo[playerid][pScore] = 0;
-		pInfo[playerid][pMoney] = 0;
-		pInfo[playerid][pSkin] = 0;
-		pInfo[playerid][pAdmin] = 0;
-		pInfo[playerid][pWarns] = 0;
-		pInfo[playerid][pMute] = 0;
-		format(pInfo[playerid][pClan], 64, "");
-		pInfo[playerid][pClanRank] = 0;
-		pInfo[playerid][pClanRights] = 0;			
-		/*:::::::::::::::::::::::::: Server Initialized ::::::::::::::::::::::::::*/
-		mode[playerid] = 0;			
-	}
-	return 1;
-}
 /* =====> [ Saves / Loades Clans ] <===== */
 public SaveClan(id)
 {
@@ -1215,7 +1275,6 @@ ocmd:setadmin(playerid, params[])
 		format(string, sizeof(string), "[AdmCmd] You've %s %s to admin level (%s | %i)", ((currentLevel < pInfo[pID][pAdmin]) ? ("promoted") : ("demoted")), pInfo[pID][pName], GetPlayerAdminName(pID), adminLevel);
 		SendClientMessage(playerid, COLOR_RED, string);		
 	}
-	SavePlayerStats(pID);
 	return 1;
 }
 
@@ -1290,7 +1349,6 @@ ocmd:mute(playerid, params[])
 	pInfo[pID][pMute] = minutes;
 	format(string, sizeof(string), "[AdmCmd] %s has been muted for %i minutes by %s. (Reason: %s)", pInfo[pID][pName], minutes, pInfo[playerid][pName], reason);
 	SendClientMessageToAll(COLOR_RED, string);
-	SavePlayerStats(pID);
 	return 1;
 }
 
@@ -1304,7 +1362,6 @@ ocmd:unmute(playerid, params[])
 	pInfo[pID][pMute] = 0;
 	format(string, sizeof(string), "[AdmCmd] %s has been unmuted by %s", pInfo[pID][pName], pInfo[playerid][pName]);
 	SendClientMessageToAll(COLOR_RED, string);
-	SavePlayerStats(pID);		
 	return 1;
 }
 
@@ -1315,7 +1372,6 @@ ocmd:warn(playerid, params[])
 	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /warn [Playername/ID] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	pInfo[pID][pWarns] ++;
-	SavePlayerStats(pID);
 	format(string, sizeof(string), "[AdmCmd] %s has been warned %i/5 by %s, (Reason: %s)", pInfo[pID][pName], pInfo[pID][pWarns], pInfo[playerid][pName], reason);
 	SendClientMessageToAll(COLOR_RED, string);
 	if(pInfo[pID][pWarns] >= 5)
@@ -1340,8 +1396,7 @@ ocmd:delwarn(playerid, params[])
 	format(string, sizeof(string), "%s has has removed one warn, (%i/5)", pInfo[playerid][pName], pInfo[pID][pWarns]);
 	SendClientMessage(playerid, COLOR_RED, string);
 	format(string, sizeof(string), "[AdmCmd] You've removed one warn from %s, (%i/5)", pInfo[pID][pName], pInfo[pID][pWarns]);
-	SendClientMessage(playerid, COLOR_RED, string);	
-	SavePlayerStats(pID);
+	SendClientMessage(playerid, COLOR_RED, string);
 	return 1;
 }
 
@@ -1368,7 +1423,6 @@ ocmd:warnmute(playerid, params[])
 		format(string, sizeof(string), "[AdmCmd] %s has been muted for %i minutes by %s, (Reason: %s)", pInfo[pID][pName], minutes, pInfo[playerid][pName], reason);
 		SendClientMessageToAll(COLOR_RED, string);		
 	}
-	SavePlayerStats(pID);
 	return 1;
 }
 
@@ -1479,7 +1533,6 @@ ocmd:setmoney(playerid, params[])
 	SendClientMessage(pID, COLOR_ORANGE, string);
 	format(string, sizeof(string), "[AdmCmd] You have added +$%s to %s's Account.", NiceMoney(money), pInfo[pID][pName]);
 	SendClientMessage(playerid, COLOR_LIGHTBLUE, string);
-	SavePlayerStats(pID);
 	return 1;
 }
 
@@ -1510,7 +1563,6 @@ ocmd:createclan(playerid, params[])
 	mysql_tquery(Database, DB_Query, "CreateClan", "i", id);  
 	format(string, sizeof(string), "[AdmCmd] %s has created a new clan, (Clan Leader: %s | Clan name: %s)", pInfo[playerid][pName], pInfo[pID][pName], clanName);
 	SendAdminMessage(COLOR_RED, string);
-	SavePlayerStats(pID);	    
 	return 1;
 }
 
@@ -1581,7 +1633,6 @@ ocmd:setclanleader(playerid, params[])
 		strmid(pInfo[pID][pClan], cInfo[i][cName], 0, 64, 64);
 		pInfo[pID][pClanRank] = 4;
 		pInfo[pID][pClanRights] = 1;
-		SavePlayerStats(pID);
 		SaveClan(i);
 		return 1;
     }
@@ -1634,7 +1685,6 @@ ocmd:skin(playerid, params[])
 	if(skinID > 311)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Please select a skin between 0 - 311");
 	SetPlayerSkin(playerid, skinID);
 	pInfo[playerid][pSkin] = skinID;
-	SavePlayerStats(playerid);
 	format(string, sizeof(string), "Skin has been set to %i", skinID);
 	SendClientMessage(playerid, COLOR_ORANGE, string);
 	return 1;
@@ -1675,7 +1725,6 @@ ocmd:setirc(playerid, params[])
 	if(sscanf(params, "i", IRC))return SendClientMessage(playerid, COLOR_RED, "[Command] /setirc [IRC]");
 	if(pInfo[playerid][pIRC] == IRC)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're already in this IRC Channel!");
 	pInfo[playerid][pIRC] = IRC;
-	SavePlayerStats(playerid);
 	format(string, sizeof(string), "[IRC] %s has joined the IRC - %i", pInfo[playerid][pName], IRC);
 	SendIRCMessage(IRC, string);
 	return 1;
