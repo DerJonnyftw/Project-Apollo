@@ -15,12 +15,12 @@ new PlayerText:MoneyLabel_PTD[MAX_PLAYERS][1];
 stock CreateServerMoneyLabel()
 {
 	MoneyLabel_TD[0] = TextDrawCreate(498.333343, 79.244422, "box");
-	TextDrawLetterSize(MoneyLabel_TD[0], 0.000000, 1.966666);
+	TextDrawLetterSize(MoneyLabel_TD[0], 0.000000, 1.966665);
 	TextDrawTextSize(MoneyLabel_TD[0], 607.000000, 0.000000);
 	TextDrawAlignment(MoneyLabel_TD[0], 1);
 	TextDrawColor(MoneyLabel_TD[0], -1);
 	TextDrawUseBox(MoneyLabel_TD[0], 1);
-	TextDrawBoxColor(MoneyLabel_TD[0], -1579453953);
+	TextDrawBoxColor(MoneyLabel_TD[0], 999242239);
 	TextDrawSetShadow(MoneyLabel_TD[0], 0);
 	TextDrawSetOutline(MoneyLabel_TD[0], 0);
 	TextDrawBackgroundColor(MoneyLabel_TD[0], 255);
@@ -34,7 +34,7 @@ stock CreateServerMoneyLabel()
 	TextDrawAlignment(MoneyLabel_TD[1], 1);
 	TextDrawColor(MoneyLabel_TD[1], -1);
 	TextDrawUseBox(MoneyLabel_TD[1], 1);
-	TextDrawBoxColor(MoneyLabel_TD[1], 255);
+	TextDrawBoxColor(MoneyLabel_TD[1], 84215295);
 	TextDrawSetShadow(MoneyLabel_TD[1], 0);
 	TextDrawSetOutline(MoneyLabel_TD[1], 0);
 	TextDrawBackgroundColor(MoneyLabel_TD[1], 255);
@@ -45,9 +45,9 @@ stock CreateServerMoneyLabel()
 	MoneyLabel_TD[2] = TextDrawCreate(499.266632, 79.270347, "$");
 	TextDrawLetterSize(MoneyLabel_TD[2], 0.452666, 1.803259);
 	TextDrawAlignment(MoneyLabel_TD[2], 1);
-	TextDrawColor(MoneyLabel_TD[2], -1579453953);
+	TextDrawColor(MoneyLabel_TD[2], 999242239);
 	TextDrawSetShadow(MoneyLabel_TD[2], 0);
-	TextDrawSetOutline(MoneyLabel_TD[2], 0);
+	TextDrawSetOutline(MoneyLabel_TD[2], 1);
 	TextDrawBackgroundColor(MoneyLabel_TD[2], 255);
 	TextDrawFont(MoneyLabel_TD[2], 3);
 	TextDrawSetProportional(MoneyLabel_TD[2], 1);
@@ -893,12 +893,12 @@ stock CreateServerDeathListLabel()
 
 stock CreatePlayerMoneyLabel(playerid)
 {
-	MoneyLabel_PTD[playerid][0] = CreatePlayerTextDraw(playerid, 509.300567, 79.170349, "100000000000");
-	PlayerTextDrawLetterSize(playerid, MoneyLabel_PTD[playerid][0], 0.408666, 1.803259);
+	MoneyLabel_PTD[playerid][0] = CreatePlayerTextDraw(playerid, 509.300567, 79.170349, "100.000.000.000");
+	PlayerTextDrawLetterSize(playerid, MoneyLabel_PTD[playerid][0], 0.339332, 1.753481);
 	PlayerTextDrawAlignment(playerid, MoneyLabel_PTD[playerid][0], 1);
 	PlayerTextDrawColor(playerid, MoneyLabel_PTD[playerid][0], -1);
 	PlayerTextDrawSetShadow(playerid, MoneyLabel_PTD[playerid][0], 0);
-	PlayerTextDrawSetOutline(playerid, MoneyLabel_PTD[playerid][0], 0);
+	PlayerTextDrawSetOutline(playerid, MoneyLabel_PTD[playerid][0], 1);
 	PlayerTextDrawBackgroundColor(playerid, MoneyLabel_PTD[playerid][0], 255);
 	PlayerTextDrawFont(playerid, MoneyLabel_PTD[playerid][0], 3);
 	PlayerTextDrawSetProportional(playerid, MoneyLabel_PTD[playerid][0], 1);

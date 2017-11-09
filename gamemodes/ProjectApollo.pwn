@@ -297,7 +297,7 @@ MySQL Connections
 
 ##############################################################################*/	
 	/*:::::::::::::::::::::::::: Modes ::::::::::::::::::::::::::*/
-	format(labeltext, sizeof(labeltext), "{A1DB71}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {A1DB71}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
+	format(labeltext, sizeof(labeltext), "{3B8F39}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {3B8F39}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
 	DM_Label = CreateDynamic3DTextLabel(labeltext, COLOR_WHITE, -2654.8694, 1397.3739, 906.4647, 10.0);
 
 /*##############################################################################
@@ -694,8 +694,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			new string[264];
 			if(strlen(inputtext) < 5 || strlen(inputtext) > 30)
 			{
-		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
-				return ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", string, "Login", "Leave");
+		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome back to {3B8F39}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
+				return ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {3B8F39}[Logging in..]", string, "Login", "Leave");
 			}
 			SHA256_PassHash(inputtext, pInfo[playerid][pSalt], pInfo[playerid][pSaltedPass], 65);
 			for (new i=0; i<strlen(inputtext); i++)
@@ -709,8 +709,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			new string[254];
 			if(strlen(inputtext) < 5 || strlen(inputtext) > 30)
 			{
-		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
-				return ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", string, "Register", "Leave");
+		    	format(string, sizeof(string), "{FF3A3A}Password length should be between 5-30 characters.\n\n{FFFFFF}Welcome to {3B8F39}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
+				return ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {3B8F39}[Registering..]", string, "Register", "Leave");
 			}
 			else
 			{
@@ -745,13 +745,13 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
 	    	{
 	    		case false:
 	    		{
-	    			format(string, sizeof(string), "{FFFFFF}Welcome to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
-					ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {A1DB71}[Registering..]", string, "Continue", "");
+	    			format(string, sizeof(string), "{FFFFFF}Welcome to {3B8F39}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was not found in our database.\nPlease type in your password below to register this account.", pInfo[playerid][pName]);
+					ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome to Apollo {3B8F39}[Registering..]", string, "Continue", "");
 	    		}
 	    		case true:
 	    		{
-	    			format(string, sizeof(string), "{FFFFFF}Welcome back to {A1DB71}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
-					ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {A1DB71}[Logging in..]", string, "Continue", "");
+	    			format(string, sizeof(string), "{FFFFFF}Welcome back to {3B8F39}Apollo{FFFFFF}, {FF3A3A}%s{FFFFFF}.\nThis account was found in our database.\nIf this is your account, please type in your password below to login.", pInfo[playerid][pName]);
+					ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "{FFFFFF}Welcome back to Apollo {3B8F39}[Logging in..]", string, "Continue", "");
 	    		}
 	    	}
 	        pInfo[playerid][pPasswordInput] = 1;
@@ -964,12 +964,12 @@ UpdateDM()
 	DestroyDynamic3DTextLabel(DM_Label);
 	if(CountModePlayer(1) == 0)
 	{
-		format(labeltext, sizeof(labeltext), "{A1DB71}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {A1DB71}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
+		format(labeltext, sizeof(labeltext), "{3B8F39}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {3B8F39}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
 		DM_Label = CreateDynamic3DTextLabel(labeltext, COLOR_WHITE, -2654.8694, 1397.3739, 906.4647, 10.0);	
 	}
 	else if(CountModePlayer(1) > 0)
 	{
-		format(labeltext, sizeof(labeltext), "{A1DB71}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {A1DB71}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
+		format(labeltext, sizeof(labeltext), "{3B8F39}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {3B8F39}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
 		DM_Label = CreateDynamic3DTextLabel(labeltext, COLOR_WHITE, -2654.8694, 1397.3739, 906.4647, 10.0);	
 	}
 	if(togmode[0] == 1)
@@ -1198,7 +1198,7 @@ public OnPlayerDataCheck(playerid, corrupt_check)
 		// Achievements here
 	}
 	for(new i=0; i<41; i++) PlayerTextDrawShow(playerid, RegLog_PTD[playerid][i]);
-	SelectTextDraw(playerid, 0xA1DB71FF);
+	SelectTextDraw(playerid, 0x3B8F39FF);
 	return 1;
 }
 
@@ -1876,7 +1876,7 @@ ocmd:admins(playerid, params[])
 	for (new i = 0; i < MAX_PLAYERS; i++)
 	{
 		if (!IsPlayerConnected(i) || pInfo[i][pAdmin] < 1) continue;
-		format(string, sizeof(string), "> {A1DB71}Name: {FFFFFF}%s [%i] | {A1DB71}Level: {FFFFFF}%s (%i) | {A1DB71}Mode: {FFFFFF}%s <",
+		format(string, sizeof(string), "> {3B8F39}Name: {FFFFFF}%s [%i] | {3B8F39}Level: {FFFFFF}%s (%i) | {3B8F39}Mode: {FFFFFF}%s <",
 		pInfo[i][pName], i, GetPlayerAdminName(i), pInfo[i][pAdmin], GetPlayerModeName(i));
 		SendClientMessage(playerid, COLOR_WHITE, string);
 	}
