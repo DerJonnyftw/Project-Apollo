@@ -42,6 +42,7 @@ TODO LIST: https://trello.com/b/8E3in4l9/project-apollo
 //#include <mapload>
 #include <audio>
 #include <serverTD>
+#include <ServerObjects>
 #include <YSF>
 //Gamemodes
 #include "../gamemodes/DMMode.pwn"
@@ -289,6 +290,7 @@ MySQL Connections
 	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Clandata");
 	mysql_pquery(Database, DB_Query, "LoadClan", "");	    
 	//mysql_tquery(Database, "CREATE TABLE IF NOT EXISTS `Accounts` (`ID` int(11) NOT NULL AUTO_INCREMENT, `Username` varchar(24) NOT NULL, `Password` char(65) NOT NULL, `Salt` char(11) NOT NULL, `Score` mediumint(7), PRIMARY KEY (`ID`), UNIQUE KEY `Username` (`Username`))");
+
 /*##############################################################################
 
 3D Text Label's
@@ -297,12 +299,21 @@ MySQL Connections
 	/*:::::::::::::::::::::::::: Modes ::::::::::::::::::::::::::*/
 	format(labeltext, sizeof(labeltext), "{A1DB71}>> Race DM <<\n{FFFFFF}%i/50 players\n Press {A1DB71}'Z / Y' {FFFFFF}to join this Gamemode.", CountModePlayer(1));
 	DM_Label = CreateDynamic3DTextLabel(labeltext, COLOR_WHITE, -2654.8694, 1397.3739, 906.4647, 10.0);
+
 /*##############################################################################
 
 Actors
 
 ##############################################################################*/
 	CreateActor(217, -2654.8694, 1397.3739, 906.4647, 3.0255); //Race DM
+
+/*##############################################################################
+
+Objects
+
+##############################################################################*/
+	CreateLobbyObjects();
+
 /*##############################################################################
 
 TextDraws
@@ -433,10 +444,10 @@ public OnPlayerSpawn(playerid)
 		{
 			if(mode[playerid] == 0)
 			{
-				SetPlayerPos(playerid, -2639.0715, 1406.4830, 906.4609);
-				SetPlayerFacingAngle(playerid, 89.6960);
+				SetPlayerPos(playerid, 1836.1390380859, -2375.6950683594, 156.01800537109);
+				SetPlayerFacingAngle(playerid, 0);
 				SetCameraBehindPlayer(playerid);
-				SetPlayerInterior(playerid, 3);
+				SetPlayerInterior(playerid, 0);
 				SetPlayerVirtualWorld(playerid, 0);
 				SetPlayerScore(playerid, 1738);
 				SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
