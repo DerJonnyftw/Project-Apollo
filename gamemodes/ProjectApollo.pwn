@@ -287,7 +287,7 @@ MySQL Connections
     print("[MySQL] Successfully connected. Continuing..");
 	/*:::::::::::::::::::::::::: Database handling ::::::::::::::::::::::::::*/
 	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Clandata");
-	mysql_pquery(Database, DB_Query, "LoadClan", "");	    
+	mysql_pquery(Database, DB_Query, "LoadClan", "");   
 	//mysql_tquery(Database, "CREATE TABLE IF NOT EXISTS `Accounts` (`ID` int(11) NOT NULL AUTO_INCREMENT, `Username` varchar(24) NOT NULL, `Password` char(65) NOT NULL, `Salt` char(11) NOT NULL, `Score` mediumint(7), PRIMARY KEY (`ID`), UNIQUE KEY `Username` (`Username`))");
 
 /*##############################################################################
@@ -440,7 +440,6 @@ public OnPlayerSpawn(playerid)
 				SetPlayerFacingAngle(playerid, 89.6960);
 				SetCameraBehindPlayer(playerid);
 				SetPlayerInterior(playerid, 3);
-				SetPlayerVirtualWorld(playerid, 0);
 				SetPlayerScore(playerid, 1738);
 				SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
 			}	
