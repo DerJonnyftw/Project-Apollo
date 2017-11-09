@@ -42,7 +42,6 @@ TODO LIST: https://trello.com/b/8E3in4l9/project-apollo
 //#include <mapload>
 #include <audio>
 #include <serverTD>
-#include <ServerObjects>
 #include <YSF>
 //Gamemodes
 #include "../gamemodes/DMMode.pwn"
@@ -265,7 +264,7 @@ main()
 
 public OnGameModeInit()
 {
-	SetGameModeText("Apollo 0.0.2");
+	SetGameModeText("Apollo 0.0.25");
 	UsePlayerPedAnims();
 	EnableStuntBonusForAll(0);
 	DisableInteriorEnterExits();
@@ -306,13 +305,6 @@ Actors
 
 ##############################################################################*/
 	CreateActor(217, -2654.8694, 1397.3739, 906.4647, 3.0255); //Race DM
-
-/*##############################################################################
-
-Objects
-
-##############################################################################*/
-	CreateLobbyObjects();
 
 /*##############################################################################
 
@@ -444,10 +436,10 @@ public OnPlayerSpawn(playerid)
 		{
 			if(mode[playerid] == 0)
 			{
-				SetPlayerPos(playerid, 1836.1390380859, -2375.6950683594, 156.01800537109);
-				SetPlayerFacingAngle(playerid, 0);
+				SetPlayerPos(playerid, -2639.0715, 1406.4830, 906.4609);
+				SetPlayerFacingAngle(playerid, 89.6960);
 				SetCameraBehindPlayer(playerid);
-				SetPlayerInterior(playerid, 0);
+				SetPlayerInterior(playerid, 3);
 				SetPlayerVirtualWorld(playerid, 0);
 				SetPlayerScore(playerid, 1738);
 				SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
