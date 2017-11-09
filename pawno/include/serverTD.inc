@@ -1,6 +1,8 @@
 #include <a_samp>
 
 new Text:Alive_TD[4];
+new Text:Health_TD[2];
+new Text:Armour_TD[2];
 new Text:FOOTER_TD[8];
 new Text:DMLoad_TD[8];
 new Text:ClanWar_TD[13];
@@ -8,6 +10,8 @@ new Text:TopTime_TD[33];
 new Text:DeathList_TD[4];
 new Text:MoneyLabel_TD[3];
 
+new PlayerText:Health_PTD[MAX_PLAYERS][2];
+new PlayerText:Armour_PTD[MAX_PLAYERS][2];
 new PlayerText:RegLog_PTD[MAX_PLAYERS][41];
 new PlayerText:SPECTATOR_PTD[MAX_PLAYERS][4];
 new PlayerText:MoneyLabel_PTD[MAX_PLAYERS][1];
@@ -52,6 +56,66 @@ stock CreateServerMoneyLabel()
 	TextDrawFont(MoneyLabel_TD[2], 3);
 	TextDrawSetProportional(MoneyLabel_TD[2], 1);
 	TextDrawSetShadow(MoneyLabel_TD[2], 0);
+	return 1;
+}
+
+stock CreateServerHealthArmourLabel()
+{
+	Health_TD[0] = TextDrawCreate(547.300292, 67.829444, "box");
+	TextDrawLetterSize(Health_TD[0], 0.000000, 0.999998);
+	TextDrawTextSize(Health_TD[0], 607.000000, 0.000000);
+	TextDrawAlignment(Health_TD[0], 1);
+	TextDrawColor(Health_TD[0], -1);
+	TextDrawUseBox(Health_TD[0], 1);
+	TextDrawBoxColor(Health_TD[0], 999242239);
+	TextDrawSetShadow(Health_TD[0], 0);
+	TextDrawSetOutline(Health_TD[0], 0);
+	TextDrawBackgroundColor(Health_TD[0], 255);
+	TextDrawFont(Health_TD[0], 1);
+	TextDrawSetProportional(Health_TD[0], 1);
+	TextDrawSetShadow(Health_TD[0], 0);
+
+	Health_TD[1] = TextDrawCreate(548.300048, 68.529434, "box");
+	TextDrawLetterSize(Health_TD[1], 0.000000, 0.844666);
+	TextDrawTextSize(Health_TD[1], 605.939697, 0.000000);
+	TextDrawAlignment(Health_TD[1], 1);
+	TextDrawColor(Health_TD[1], 255);
+	TextDrawUseBox(Health_TD[1], 1);
+	TextDrawBoxColor(Health_TD[1], 84215295);
+	TextDrawSetShadow(Health_TD[1], 0);
+	TextDrawSetOutline(Health_TD[1], 0);
+	TextDrawBackgroundColor(Health_TD[1], 255);
+	TextDrawFont(Health_TD[1], 1);
+	TextDrawSetProportional(Health_TD[1], 1);
+	TextDrawSetShadow(Health_TD[1], 0);
+
+	Armour_TD[0] = TextDrawCreate(547.300292, 44.629798, "box");
+	TextDrawLetterSize(Armour_TD[0], 0.000000, 0.999998);
+	TextDrawTextSize(Armour_TD[0], 607.000000, 0.000000);
+	TextDrawAlignment(Armour_TD[0], 1);
+	TextDrawColor(Armour_TD[0], -1);
+	TextDrawUseBox(Armour_TD[0], 1);
+	TextDrawBoxColor(Armour_TD[0], 999242239);
+	TextDrawSetShadow(Armour_TD[0], 0);
+	TextDrawSetOutline(Armour_TD[0], 0);
+	TextDrawBackgroundColor(Armour_TD[0], 255);
+	TextDrawFont(Armour_TD[0], 1);
+	TextDrawSetProportional(Armour_TD[0], 1);
+	TextDrawSetShadow(Armour_TD[0], 0);
+
+	Armour_TD[1] = TextDrawCreate(548.300048, 45.329788, "box");
+	TextDrawLetterSize(Armour_TD[1], 0.000000, 0.844666);
+	TextDrawTextSize(Armour_TD[1], 605.939697, 0.000000);
+	TextDrawAlignment(Armour_TD[1], 1);
+	TextDrawColor(Armour_TD[1], 255);
+	TextDrawUseBox(Armour_TD[1], 1);
+	TextDrawBoxColor(Armour_TD[1], 84215295);
+	TextDrawSetShadow(Armour_TD[1], 0);
+	TextDrawSetOutline(Armour_TD[1], 0);
+	TextDrawBackgroundColor(Armour_TD[1], 255);
+	TextDrawFont(Armour_TD[1], 1);
+	TextDrawSetProportional(Armour_TD[1], 1);
+	TextDrawSetShadow(Armour_TD[1], 0);	
 	return 1;
 }
 
@@ -903,6 +967,60 @@ stock CreatePlayerMoneyLabel(playerid)
 	PlayerTextDrawFont(playerid, MoneyLabel_PTD[playerid][0], 3);
 	PlayerTextDrawSetProportional(playerid, MoneyLabel_PTD[playerid][0], 1);
 	PlayerTextDrawSetShadow(playerid, MoneyLabel_PTD[playerid][0], 0);
+	return 1;
+}
+
+stock CreatePlayerHealthArmourLabel(playerid)
+{
+	Health_PTD[playerid][0] = CreatePlayerTextDraw(playerid, 548.300048, 68.529434, "box");
+	PlayerTextDrawLetterSize(playerid, Health_PTD[playerid][0], 0.000000, 0.844666);
+	PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 605.939697, 0.000000);
+	PlayerTextDrawAlignment(playerid, Health_PTD[playerid][0], 1);
+	PlayerTextDrawColor(playerid, Health_PTD[playerid][0], 255);
+	PlayerTextDrawUseBox(playerid, Health_PTD[playerid][0], 1);
+	PlayerTextDrawBoxColor(playerid, Health_PTD[playerid][0], -1290199809);
+	PlayerTextDrawSetShadow(playerid, Health_PTD[playerid][0], 0);
+	PlayerTextDrawSetOutline(playerid, Health_PTD[playerid][0], 0);
+	PlayerTextDrawBackgroundColor(playerid, Health_PTD[playerid][0], 255);
+	PlayerTextDrawFont(playerid, Health_PTD[playerid][0], 1);
+	PlayerTextDrawSetProportional(playerid, Health_PTD[playerid][0], 1);
+	PlayerTextDrawSetShadow(playerid, Health_PTD[playerid][0], 0);
+
+	Health_PTD[playerid][1] = CreatePlayerTextDraw(playerid, 577.030029, 68.674095, "100%");
+	PlayerTextDrawLetterSize(playerid, Health_PTD[playerid][1], 0.226998, 0.820146);
+	PlayerTextDrawAlignment(playerid, Health_PTD[playerid][1], 2);
+	PlayerTextDrawColor(playerid, Health_PTD[playerid][1], -1);
+	PlayerTextDrawSetShadow(playerid, Health_PTD[playerid][1], 0);
+	PlayerTextDrawSetOutline(playerid, Health_PTD[playerid][1], 1);
+	PlayerTextDrawBackgroundColor(playerid, Health_PTD[playerid][1], 255);
+	PlayerTextDrawFont(playerid, Health_PTD[playerid][1], 1);
+	PlayerTextDrawSetProportional(playerid, Health_PTD[playerid][1], 1);
+	PlayerTextDrawSetShadow(playerid, Health_PTD[playerid][1], 0);
+
+	Armour_PTD[playerid][0] = CreatePlayerTextDraw(playerid, 548.300048, 45.329788, "box");
+	PlayerTextDrawLetterSize(playerid, Armour_PTD[playerid][0], 0.000000, 0.844666);
+	PlayerTextDrawTextSize(playerid, Armour_PTD[playerid][0], 605.939697, 0.000000);
+	PlayerTextDrawAlignment(playerid, Armour_PTD[playerid][0], 1);
+	PlayerTextDrawColor(playerid, Armour_PTD[playerid][0], 255);
+	PlayerTextDrawUseBox(playerid, Armour_PTD[playerid][0], 1);
+	PlayerTextDrawBoxColor(playerid, Armour_PTD[playerid][0], -522128129);
+	PlayerTextDrawSetShadow(playerid, Armour_PTD[playerid][0], 0);
+	PlayerTextDrawSetOutline(playerid, Armour_PTD[playerid][0], 0);
+	PlayerTextDrawBackgroundColor(playerid, Armour_PTD[playerid][0], 255);
+	PlayerTextDrawFont(playerid, Armour_PTD[playerid][0], 1);
+	PlayerTextDrawSetProportional(playerid, Armour_PTD[playerid][0], 1);
+	PlayerTextDrawSetShadow(playerid, Armour_PTD[playerid][0], 0);
+
+	Armour_PTD[playerid][1] = CreatePlayerTextDraw(playerid, 577.030029, 45.274452, "100%");
+	PlayerTextDrawLetterSize(playerid, Armour_PTD[playerid][1], 0.226998, 0.820146);
+	PlayerTextDrawAlignment(playerid, Armour_PTD[playerid][1], 2);
+	PlayerTextDrawColor(playerid, Armour_PTD[playerid][1], -1);
+	PlayerTextDrawSetShadow(playerid, Armour_PTD[playerid][1], 0);
+	PlayerTextDrawSetOutline(playerid, Armour_PTD[playerid][1], 1);
+	PlayerTextDrawBackgroundColor(playerid, Armour_PTD[playerid][1], 255);
+	PlayerTextDrawFont(playerid, Armour_PTD[playerid][1], 1);
+	PlayerTextDrawSetProportional(playerid, Armour_PTD[playerid][1], 1);
+	PlayerTextDrawSetShadow(playerid, Armour_PTD[playerid][1], 0);
 	return 1;
 }
 

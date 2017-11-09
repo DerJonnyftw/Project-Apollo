@@ -319,6 +319,7 @@ TextDraws
 	CreateServerTopTimeLabel();
 	CreateServerClanWarLabel();
 	CreateServerDeathListLabel();
+	CreateServerHealthArmourLabel();
 
 	/*:::::::::::::::::::::::::: Server Timers ::::::::::::::::::::::::::*/
 	SetTimer("Unmute", 1000 * 60, true);
@@ -378,8 +379,9 @@ public OnPlayerConnect(playerid)
 	SetPlayerColor(playerid, PlayerColors[playerid]);
 	/*:::::::::::::::::::::::::: TextDraws ::::::::::::::::::::::::::*/
 	CreatePlayerMoneyLabel(playerid);
-	CreatePlayerSpectatorLabel(playerid);
 	CreatePlayerRegLogLabel(playerid);
+	CreatePlayerSpectatorLabel(playerid);
+	CreatePlayerHealthArmourLabel(playerid);
 
 	format(NameString, sizeof(NameString), "%s", pInfo[playerid][pName]);
 	PlayerTextDrawSetString(playerid, RegLog_PTD[playerid][7], NameString);
@@ -662,6 +664,105 @@ public OnRconLoginAttempt(ip[], password[], success)
 
 public OnPlayerUpdate(playerid)
 {
+	new string[128];
+	new Float:Health, Float:Armour;
+	GetPlayerHealth(playerid, Health);
+	GetPlayerArmour(playerid, Armour);
+	if(mode[playerid] == 0)
+	{
+		format(string, sizeof(string), "%i%", floatround(Health));
+		PlayerTextDrawSetString(playerid, Health_PTD[playerid][1], string);			
+		if(Health >= 95)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 605.939697, 0.000000);
+		}
+		else if(Health >= 90 && Health < 95)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 604.000097, 0.000000);
+		}
+		else if(Health >= 85 && Health < 90)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 602.000097, 0.000000);
+		}
+		else if(Health >= 80 && Health < 85)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 599.000097, 0.000000);
+		}
+		else if(Health >= 75 && Health < 80)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 596.000097, 0.000000);
+		}
+		else if(Health >= 70 && Health < 75)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 593.000097, 0.000000);
+		}
+		else if(Health >= 65 && Health < 70)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 589.000097, 0.000000);
+		}
+		else if(Health >= 60 && Health < 65)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 583.000097, 0.000000);
+		}
+		else if(Health >= 55 && Health < 60)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 577.000097, 0.000000);
+		}
+		else if(Health >= 50 && Health < 55)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 573.000097, 0.000000);
+		}
+		else if(Health >= 45 && Health < 50)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 569.000097, 0.000000);
+		}
+		else if(Health >= 40 && Health < 45)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 566.000097, 0.000000);
+		}
+		else if(Health >= 35 && Health < 40)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 563.000097, 0.000000);
+		}
+		else if(Health >= 30 && Health < 35)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 559.000097, 0.000000);
+		}
+		else if(Health >= 25 && Health < 30)
+		{
+			PlayerTextDrawHide(playerid, Health_PTD[playerid][0]);
+			PlayerTextDrawShow(playerid, Health_PTD[playerid][0]);		
+			PlayerTextDrawTextSize(playerid, Health_PTD[playerid][0], 554.000097, 0.000000);
+		}			
+	}		
 	return 1;
 }
 
@@ -787,9 +888,11 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
 							{
 								
 								//:::::::::::::::::::::::::: TextDraws ::::::::::::::::::::::::::
-								for (new i = 0; i < sizeof (MoneyLabel_TD); i++) TextDrawShowForPlayer(playerid, MoneyLabel_TD[i]);
-								for (new i = 0; i < 1; i++) PlayerTextDrawShow(playerid, MoneyLabel_PTD[playerid][i]);
-								for(new i=0; i<41; i++) PlayerTextDrawDestroy(playerid, RegLog_PTD[playerid][i]);
+								for(new i = 0; i < sizeof (MoneyLabel_TD); i++) TextDrawShowForPlayer(playerid, MoneyLabel_TD[i]);
+								for(new i = 0; i < 1; i++) PlayerTextDrawShow(playerid, MoneyLabel_PTD[playerid][i]);
+								for(new i = 0; i < sizeof (Health_TD); i++) TextDrawShowForPlayer(playerid, Health_TD[i]);
+								for(new i = 0; i < 2; i++) PlayerTextDrawShow(playerid, Health_PTD[playerid][i]);
+								for(new i = 0; i < 41; i++) PlayerTextDrawDestroy(playerid, RegLog_PTD[playerid][i]);
 								CancelSelectTextDraw(playerid);		
 								//:::::::::::::::::::::::::: Spawn + Mode ::::::::::::::::::::::::::
 								TogglePlayerSpectating(playerid, false);
@@ -1306,11 +1409,18 @@ GetPlayerClanRangName(playerid)
 *        COMMANDS
 *************************/
 /*:::::::::::::::::::::::::: Admin Commands ::::::::::::::::::::::::::*/
+ocmd:gmx(playerid, params[])
+{
+	if(pInfo[playerid][pAdmin] < 5)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
+	SendRconCommand("gmx");
+	return 1;
+}
+
 ocmd:setadmin(playerid, params[])
 {
 	new pID, string[128], adminLevel, currentLevel;
 	if(pInfo[playerid][pAdmin] < 5)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "ui", pID, adminLevel))return SendClientMessage(playerid, COLOR_RED, "[Command] /setadmin [Playername/ID] [Adminlevel]");
+	if(sscanf(params, "ui", pID, adminLevel))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/setadmin [Playername/ID] [Adminlevel]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(pInfo[pID][pAdmin] == adminLevel)return SendClientMessage(playerid, COLOR_RED,"[ERROR] The player already has this Adminlevel!");
 	if(adminLevel < 0 || adminLevel > 6)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Invalid level! (0 - 6)!");
@@ -1337,7 +1447,7 @@ ocmd@2:a,achat(playerid,params[])
 {
 	new string[128];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "s", string))return SendClientMessage(playerid, COLOR_RED, "[Command] /achat [Text]");
+	if(sscanf(params, "s", string))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/achat [Text]");
 	format(string, sizeof(string), "[%s] [%s (%i)] | %s [%i]: %s", GetPlayerModeName(playerid), GetPlayerAdminName(playerid), pInfo[playerid][pAdmin], pInfo[playerid][pName], playerid, string);
 	SendAdminMessage(COLOR_ORANGERED, string);
 	return 1;
@@ -1354,7 +1464,7 @@ ocmd@2:ann,announce(playerid, params[])
 {
 	new string[500];
 	if(pInfo[playerid][pAdmin] < 3)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "s", string))return SendClientMessage(playerid, COLOR_RED, "[Command] /announce [Text]");
+	if(sscanf(params, "s", string))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/announce [Text]");
 	format(string, sizeof(string), "[ANNOUNCEMENT] {FFFFFF}%s", string);
 	SendClientMessageToAll(COLOR_RED, string);
 	return 1;
@@ -1364,7 +1474,7 @@ ocmd:kick(playerid, params[])
 {
 	new pID, string[128], reason[128];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /kick [Playername/ID] [Reason]");
+	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/kick [Playername/ID] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	format(string, sizeof(string), "[AdmCmd] %s has been kicked by %s´. (Reason: %s)", pInfo[pID][pName], pInfo[playerid][pName], reason);
 	SendClientMessageToAll(COLOR_RED, string);
@@ -1376,7 +1486,7 @@ ocmd:ban(playerid, params[])
 {
 	new pID, reason[128];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /ban [Playername/ID] [Reason]");
+	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/ban [Playername/ID] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	new ipadress[24];
 	GetPlayerIp(pID, ipadress, sizeof(ipadress));
@@ -1388,7 +1498,7 @@ ocmd:unban(playerid, params[])
 {
 	new name[MAX_PLAYER_NAME];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "s", name))return SendClientMessage(playerid, COLOR_RED, "[Command] /unban [Playername]");
+	if(sscanf(params, "s", name))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/unban [Playername]");
 	mysql_format(Database, DB_Query, sizeof(DB_Query), "SELECT * FROM Bandata WHERE Name = '%s'", name);
 	mysql_pquery(Database, DB_Query, "Unban", "is", playerid, name);
 	return 1;
@@ -1398,7 +1508,7 @@ ocmd:mute(playerid, params[])
 {
 	new pID, string[128], reason[128], minutes;
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "uis", pID, minutes, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /mute [Playername/ID] [Minutes] [Reason]");
+	if(sscanf(params, "uis", pID, minutes, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/mute [Playername/ID] [Minutes] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(pInfo[pID][pMute] > 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is already muted!");
 	pInfo[pID][pMute] = minutes;
@@ -1411,7 +1521,7 @@ ocmd:unmute(playerid, params[])
 {
 	new pID, string[128];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "uis", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /unmute [Playername/ID]");
+	if(sscanf(params, "uis", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/unmute [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(pInfo[pID][pMute] == 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is not muted!");
 	pInfo[pID][pMute] = 0;
@@ -1424,7 +1534,7 @@ ocmd:warn(playerid, params[])
 {
 	new pID, string[128], reason[128], ipadress[24];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /warn [Playername/ID] [Reason]");
+	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/warn [Playername/ID] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	pInfo[pID][pWarns] ++;
 	format(string, sizeof(string), "[AdmCmd] %s has been warned %i/5 by %s, (Reason: %s)", pInfo[pID][pName], pInfo[pID][pWarns], pInfo[playerid][pName], reason);
@@ -1444,7 +1554,7 @@ ocmd:delwarn(playerid, params[])
 {
 	new pID, string[128];
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /delwarn [Playername/ID]");
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/delwarn [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(pInfo[pID][pWarns] <= 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player has no warns!");
 	pInfo[pID][pWarns] --;
@@ -1459,7 +1569,7 @@ ocmd:warnmute(playerid, params[])
 {
 	new pID, string[128], reason[128], ipadress[24], minutes;
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "uis", pID, minutes, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /warnmute [Playername/ID] [Minutes] [Reason]");
+	if(sscanf(params, "uis", pID, minutes, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/warnmute [Playername/ID] [Minutes] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	pInfo[pID][pWarns] ++;
 	format(string, sizeof(string), "[AdmCmd] %s has been warned %i/5 by %s, (Reason: %s)", pInfo[pID][pName], pInfo[pID][pWarns], pInfo[playerid][pName], reason);
@@ -1488,7 +1598,7 @@ ocmd:togmode(playerid, params[])
 	if(sscanf(params, "i", modeID))
 	{
 		SendClientMessage(playerid, COLOR_RED, "1 - Race DM");
-		return SendClientMessage(playerid, COLOR_RED, "[Command] /togmode [ModeID]");
+		return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/togmode [ModeID]");
 	}
 	if(modeID < 1 || modeID > 3)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Invalid Gamemode!");
     if(togmode[modeID-1] == 1) 
@@ -1512,7 +1622,7 @@ ocmd:forcelobby(playerid, params[])
 {
 	new pID, string[128], reason[128];
 	if(pInfo[playerid][pAdmin] < 1) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
-	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /forcelobby [Playername/ID] [Reason]");
+	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/forcelobby [Playername/ID] [Reason]");
 	if(mode[pID] == 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is already in the Lobby!");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	format(string, sizeof(string), "[AdmCmd] %s has been forced to the Lobby. (Reason: %s)", pInfo[pID][pName], reason);
@@ -1548,7 +1658,7 @@ ocmd:ip(playerid, params[])
 {
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new ip[16], string[128], pID;
-	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /ip [Playername/ID]");
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/ip [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	GetPlayerIp(playerid, ip, sizeof(ip));
 	SendClientMessage(playerid, COLOR_RED, "|____________________ IP Adress Check ____________________|");
@@ -1564,7 +1674,7 @@ ocmd:serial(playerid, params[])
 {
 	if(pInfo[playerid][pAdmin] < 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new serial[30], string[128], pID;
-	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /serial [Playername/ID]");
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/serial [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	gpci(pID, serial, sizeof(serial));
 	SendClientMessage(playerid, COLOR_RED, "|____________________ Serial Check ____________________|");
@@ -1580,7 +1690,7 @@ ocmd:setmoney(playerid, params[])
 {
 	if(pInfo[playerid][pAdmin] < 3) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new pID, money, string[128];
-	if(sscanf(params, "ui", pID, money)) return SendClientMessage(playerid, COLOR_RED, "[Command] /setmoney [Playername/ID] [Amount]");
+	if(sscanf(params, "ui", pID, money)) return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/setmoney [Playername/ID] [Amount]");
 	if(!IsPlayerConnected(pID)) return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	pInfo[pID][pMoney] += money;
 	SetPlayerMoney(pID, pInfo[pID][pMoney]);
@@ -1599,9 +1709,9 @@ ocmd:createclan(playerid, params[])
 	gettime(hour, minute, second);
 	new pID, clanName[64], string[128];
 	new id = GetFreeClanID();
-	if(sscanf(params, "us", pID, clanName))return SendClientMessage(playerid, COLOR_RED, "[Command] /createclan [Playername/ID] [ClanName]");
+	if(sscanf(params, "us", pID, clanName))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/createclan [Playername/ID] [ClanName]");
 	if(!IsPlayerConnected(pID)) return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
-	if(strlen(clanName) < 1)return SendClientMessage(playerid, COLOR_RED, "[Command] /createclan [ClanName]");
+	if(strlen(clanName) < 1)return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/createclan [ClanName]");
 	strmid(cInfo[id][cName], clanName, 0, sizeof(clanName), sizeof(clanName));
 	strmid(pInfo[pID][pClan], cInfo[id][cName], 0, 64, 64);
 	pInfo[pID][pClanRank] = 4;
@@ -1625,7 +1735,7 @@ ocmd:delclan(playerid, params[])
 {
 	if(pInfo[playerid][pAdmin] < 4) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new clanID, string[128];
-	if(sscanf(params, "i", clanID))return SendClientMessage(playerid, COLOR_RED, "[Command] /delclan [ClanID]");
+	if(sscanf(params, "i", clanID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/delclan [ClanID]");
 	for(new i = 0; i < sizeof(cInfo); i ++)
 	{
 		if(!cInfo[i][c_ID] || clanID != cInfo[i][c_ID]) continue;
@@ -1655,7 +1765,7 @@ ocmd:setclanscore(playerid, params[])
 {
 	if(pInfo[playerid][pAdmin] < 4) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new clanID, clanScore, string[128];
-	if(sscanf(params, "ii", clanID, clanScore))return SendClientMessage(playerid, COLOR_RED, "[Command] /setclanscore [ClanID] [ClanScore]");
+	if(sscanf(params, "ii", clanID, clanScore))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/setclanscore [ClanID] [ClanScore]");
     for(new i = 0; i < sizeof(cInfo); i ++)
     {
         if(!cInfo[i][c_ID] || clanID != cInfo[i][c_ID]) continue;
@@ -1675,7 +1785,7 @@ ocmd:setclanleader(playerid, params[])
 {
 	if(pInfo[playerid][pAdmin] < 3) return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not an Admin!");
 	new clanID, pID, string[128];
-	if(sscanf(params, "ui", pID, clanID))return SendClientMessage(playerid, COLOR_RED, "[Command] /setclanleader [Playername/ID] [ClanID]");
+	if(sscanf(params, "ui", pID, clanID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/setclanleader [Playername/ID] [ClanID]");
 	if(!IsPlayerConnected(pID)) return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(strlen(pInfo[pID][pClan]) > 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is already in a clan!");
     for(new i = 0; i < sizeof(cInfo); i++)
@@ -1736,7 +1846,7 @@ ocmd:lobby(playerid, params[])
 ocmd:skin(playerid, params[])
 {
 	new skinID, string[128];
-	if(sscanf(params, "i", skinID))return SendClientMessage(playerid, COLOR_RED, "[Command] /skin [SkinID]");
+	if(sscanf(params, "i", skinID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/skin [SkinID]");
 	if(skinID > 311)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Please select a skin between 0 - 311");
 	SetPlayerSkin(playerid, skinID);
 	pInfo[playerid][pSkin] = skinID;
@@ -1763,7 +1873,7 @@ ocmd:blockpm(playerid, params[])
 ocmd:pm(playerid, params[])
 {
 	new pID, string[128], text[128];
-	if(sscanf(params, "us", pID, text))return SendClientMessage(playerid, COLOR_RED, "[Command] /pm [Playername/ID] [Text]");
+	if(sscanf(params, "us", pID, text))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/pm [Playername/ID] [Text]");
 	if(pID == playerid)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You can't pm your self!");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(blockpm[pID] == 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] This player blocked his Privat Messages!");
@@ -1777,7 +1887,7 @@ ocmd:pm(playerid, params[])
 ocmd:setirc(playerid, params[])
 {
 	new IRC, string[128];
-	if(sscanf(params, "i", IRC))return SendClientMessage(playerid, COLOR_RED, "[Command] /setirc [IRC]");
+	if(sscanf(params, "i", IRC))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/setirc [IRC]");
 	if(pInfo[playerid][pIRC] == IRC)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're already in this IRC Channel!");
 	pInfo[playerid][pIRC] = IRC;
 	format(string, sizeof(string), "[IRC] %s has joined the IRC - %i", pInfo[playerid][pName], IRC);
@@ -1788,7 +1898,7 @@ ocmd:setirc(playerid, params[])
 ocmd@2:i,irc(playerid, params[])
 {
 	new text[128], string[128];
-	if(sscanf(params, "s", text))return SendClientMessage(playerid, COLOR_RED, "[Command] /irc [Text]");
+	if(sscanf(params, "s", text))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/irc [Text]");
 	if(pInfo[playerid][pIRC] == 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not in the IRC!");
 	format(string, sizeof(string), "[%s] IRC [%i] | %s [%i]: %s", GetPlayerModeName(playerid), pInfo[playerid][pIRC], pInfo[playerid][pName], playerid, text);
 	SendIRCMessage(pInfo[playerid][pIRC], string);
@@ -1810,7 +1920,7 @@ ocmd:invite(playerid, params[])
 {
 	if(!strlen(pInfo[playerid][pClan]) || pInfo[playerid][pClanRights] != 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not the Leader!");
 	new pID, string[128];
-	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /invite [Playername/ID]");
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/invite [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(strlen(pInfo[pID][pClan]) > 0)return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is already in a Clan!");
 	strmid(pInfo[pID][pClan], pInfo[playerid][pClan], 0, strlen(pInfo[playerid][pClan]), strlen(pInfo[playerid][pClan]));
@@ -1826,7 +1936,7 @@ ocmd:ckick(playerid, params[])
 {
 	if(!strlen(pInfo[playerid][pClan]) || pInfo[playerid][pClanRights] != 1)return SendClientMessage(playerid, COLOR_RED, "[ERROR] You're not the Leader!");
 	new pID, string[128];
-	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Command] /ckick [Playername/ID]");
+	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/ckick [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	if(strlen(pInfo[pID][pClan]) != pInfo[playerid][pClan])return SendClientMessage(playerid, COLOR_RED, "[ERROR] Player is not in your Clan!");
 	strmid(pInfo[pID][pClan], "", 0, 64, 64);
@@ -1842,7 +1952,7 @@ ocmd:c(playerid, params[])
 {
 	if(!strlen(pInfo[playerid][pClan]))return SendClientMessage(playerid, COLOR_RED, "[ERROR] You are not in a clan!");
 	new string[128], text[128];
-	if (sscanf(params, "s", text))return SendClientMessage(playerid, COLOR_RED, "[Command] /c [Text]");
+	if (sscanf(params, "s", text))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/c [Text]");
 	for (new i = 0; i < MAX_PLAYERS; i++)
 	{
 	    if(!IsPlayerConnected(i) || strlen(pInfo[playerid][pClan]) < 1) continue;
@@ -1859,7 +1969,7 @@ ocmd:c(playerid, params[])
 ocmd:report(playerid, params[])
 {
 	new string[128], reason[128], pID;
-	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Command] /report [Playername/ID] [Reason]");
+	if(sscanf(params, "us", pID, reason))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/report [Playername/ID] [Reason]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	format(string, sizeof(string), "[REPORT] [%s] %s [%i] has reported %s [%i], (Reason: %s)", GetPlayerModeName(playerid), pInfo[playerid][pName], playerid, pInfo[pID][pName], pID, reason);
 	SendAdminMessage(COLOR_RED, string);
