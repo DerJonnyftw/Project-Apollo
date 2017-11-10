@@ -1202,7 +1202,7 @@ stock CreatePlayerRegLogLabel(playerid)
 	PlayerTextDrawSetProportional(playerid, RegLog_PTD[playerid][9], 1);
 	PlayerTextDrawSetShadow(playerid, RegLog_PTD[playerid][9], 0);
 
-	RegLog_PTD[playerid][10] = CreatePlayerTextDraw(playerid, 144.766754, 212.345046, "]]]]]");
+	RegLog_PTD[playerid][10] = CreatePlayerTextDraw(playerid, 144.766754, 212.345046, "Enter your password");
 	PlayerTextDrawLetterSize(playerid, RegLog_PTD[playerid][10], 0.217666, 0.936294);
 	PlayerTextDrawTextSize(playerid, RegLog_PTD[playerid][10], 291.000000, 10.000000);
 	PlayerTextDrawAlignment(playerid, RegLog_PTD[playerid][10], 1);

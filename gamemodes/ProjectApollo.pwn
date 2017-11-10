@@ -837,7 +837,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 
 public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid)
 {
-	if (_:playertextid != INVALID_TEXT_DRAW)
+	if(_:playertextid != INVALID_TEXT_DRAW)
 	{
 	    if(playertextid == RegLog_PTD[playerid][10]) // Password
 	    {
@@ -1661,12 +1661,8 @@ ocmd:ip(playerid, params[])
 	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/ip [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	GetPlayerIp(playerid, ip, sizeof(ip));
-	SendClientMessage(playerid, COLOR_RED, "|____________________ IP Adress Check ____________________|");
-	format(string, sizeof(string), "Username: {FFFFFF}%s", pInfo[pID][pName]);
+	format(string, sizeof(string), "[AdmCmd] %s [%i] | {FF3A3A}%s", pInfo[pID][pName], pID, ip);
 	SendClientMessage(playerid, COLOR_RED, string);	
-	format(string, sizeof(string), "IP: {FFFFFF}%s", ip);
-	SendClientMessage(playerid, COLOR_RED, string);
-	SendClientMessage(playerid, COLOR_RED, "|________________________________________________________|");
 	return 1;
 }
 
@@ -1677,12 +1673,8 @@ ocmd:serial(playerid, params[])
 	if(sscanf(params, "u", pID))return SendClientMessage(playerid, COLOR_RED, "[Usage] {FFFFFF}/serial [Playername/ID]");
 	if(!IsPlayerConnected(pID))return SendClientMessage(playerid, COLOR_RED, "[ERROR] Wrong ID or the player is not connected!");
 	gpci(pID, serial, sizeof(serial));
-	SendClientMessage(playerid, COLOR_RED, "|____________________ Serial Check ____________________|");
-	format(string, sizeof(string), "Username: {FFFFFF}%s", pInfo[pID][pName]);
+	format(string, sizeof(string), "[AdmCmd] %s [%i] | {FF3A3A}%s", pInfo[pID][pName], pID, serial);
 	SendClientMessage(playerid, COLOR_RED, string);	
-	format(string, sizeof(string), "Serial: {FFFFFF}%s", serial);
-	SendClientMessage(playerid, COLOR_RED, string);
-	SendClientMessage(playerid, COLOR_RED, "|____________________________________________________|");
 	return 1;
 }
 
